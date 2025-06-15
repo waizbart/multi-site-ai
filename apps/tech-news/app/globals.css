@@ -47,9 +47,7 @@
         --input: 217.2 32.6% 17.5%;
         --ring: 224.3 76.3% 94.1%;
     }
-}
 
-@layer base {
     * {
         @apply border-border;
     }
@@ -139,23 +137,23 @@ pre[data-theme="github-dark"] {
 
 /* Article content styles */
 .prose {
-    @apply max-w-none text-gray-900;
+    @apply max-w-none text-foreground;
 }
 
 .prose h1 {
-    @apply text-3xl font-bold mt-8 mb-4 text-gray-900;
+    @apply text-3xl font-bold mt-8 mb-4 text-foreground;
 }
 
 .prose h2 {
-    @apply text-2xl font-semibold mt-6 mb-3 text-gray-900;
+    @apply text-2xl font-semibold mt-6 mb-3 text-foreground;
 }
 
 .prose h3 {
-    @apply text-xl font-medium mt-4 mb-2 text-gray-900;
+    @apply text-xl font-medium mt-4 mb-2 text-foreground;
 }
 
 .prose p {
-    @apply mb-4 leading-7 text-gray-900;
+    @apply mb-4 leading-7 text-foreground;
 }
 
 .prose ul,
@@ -164,7 +162,7 @@ pre[data-theme="github-dark"] {
 }
 
 .prose li {
-    @apply mb-2 text-gray-900;
+    @apply mb-2 text-foreground;
 }
 
 .prose blockquote {
@@ -174,8 +172,6 @@ pre[data-theme="github-dark"] {
 .prose code {
     @apply bg-gray-100 px-1 py-0.5 rounded text-sm text-gray-800;
 }
-
-
 
 .prose a {
     @apply text-primary hover:underline;
@@ -189,4 +185,24 @@ pre[data-theme="github-dark"] {
 .prose h2:hover .subheading-anchor,
 .prose h3:hover .subheading-anchor {
     opacity: 1;
+}
+
+@layer utilities {
+    @keyframes gradient {
+
+        0%,
+        100% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+
+    .bg-flow {
+        background: linear-gradient(270deg, hsl(var(--primary)), #9333ea, #ec4899);
+        background-size: 600% 600%;
+        animation: gradient 12s ease infinite;
+    }
 }

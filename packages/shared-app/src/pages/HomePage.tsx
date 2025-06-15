@@ -4,6 +4,7 @@ import { getSiteConfig } from '@multi-site-ai/config'
 import { Badge, formatDate } from '@multi-site-ai/ui'
 import { Clock, Calendar, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { getAllPosts, getFeaturedPosts, getRecentPosts } from '../lib/posts'
 
 interface HomePageProps {
@@ -21,21 +22,24 @@ export function createHomePage(siteId: string) {
         return (
             <div className="container mx-auto px-4 py-8">
                 {/* Hero Section */}
-                <section className="text-center py-12 mb-12">
-                    <h1 className="text-4xl font-bold tracking-tight lg:text-6xl mb-6">
-                        {siteConfig.name}
-                    </h1>
-                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-                        {siteConfig.description}
-                    </p>
-                    <div className="flex justify-center gap-4">
-                        <Link
-                            href="#artigos"
-                            className="inline-flex items-center px-6 py-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                        >
-                            Ver Artigos
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
+                <section className="relative overflow-hidden rounded-xl mb-12">
+                    <div className="absolute inset-0 bg-flow opacity-50" />
+                    <div className="relative text-center py-20 px-4">
+                        <h1 className="text-4xl font-bold tracking-tight lg:text-6xl mb-6">
+                            {siteConfig.name}
+                        </h1>
+                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                            {siteConfig.description}
+                        </p>
+                        <div className="flex justify-center gap-4">
+                            <Link
+                                href="#artigos"
+                                className="inline-flex items-center px-6 py-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                            >
+                                Ver Artigos
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                        </div>
                     </div>
                 </section>
 

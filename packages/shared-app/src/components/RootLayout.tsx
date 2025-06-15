@@ -3,6 +3,8 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import type { SiteConfig } from '@multi-site-ai/config'
+import { ThemeProvider } from './ThemeProvider'
+import NavBar from './NavBar'
 
 interface RootLayoutProps {
     children: React.ReactNode
@@ -48,29 +50,21 @@ export function createRootLayout(siteConfig: SiteConfig, className?: string) {
                     )}
                 </head>
                 <body className={className}>
-                    <div className="flex min-h-screen flex-col">
-                        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                            <div className="container flex h-14 items-center">
-                                <div className="mr-4 hidden md:flex">
-                                    <a className="m-6 flex items-center space-x-2" href="/">
-                                        <span className="hidden font-bold sm:inline-block">
-                                            {siteConfig.name}
-                                        </span>
-                                    </a>
+                    <ThemeProvider>
+                        <div className="flex min-h-screen flex-col">
+                            <NavBar title={siteConfig.name} />
+
+                            <main className="flex-1">{children}</main>
+
+                            <footer className="w-full border-t py-6 md:py-0">
+                                <div className="container w-full flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
+                                    <p className="text-center text-sm leading-loose text-muted-foreground">
+                                        © {new Date().getFullYear()} {siteConfig.name}. Conteúdo gerado por IA.
+                                    </p>
                                 </div>
-                            </div>
-                        </header>
-
-                        <main className="flex-1">{children}</main>
-
-                        <footer className="w-full border-t py-6 md:py-0">
-                            <div className="container w-full flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
-                                <p className="text-center text-sm leading-loose text-muted-foreground">
-                                    © {new Date().getFullYear()} {siteConfig.name}. Conteúdo gerado por IA.
-                                </p>
-                            </div>
-                        </footer>
-                    </div>
+                            </footer>
+                        </div>
+                    </ThemeProvider>
                 </body>
             </html>
         )
