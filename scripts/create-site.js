@@ -177,8 +177,8 @@ Divirta-se criando conteúdo!`
 export const ${siteId.replace(/-/g, '')}Config: SiteConfig = {
     name: '${siteName}',
     description: '${siteDescription}',
-    domain: '${siteId}.com', // TODO: Substitua pelo seu domínio
-    url: 'https://${siteId}.com', // TODO: Substitua pela sua URL
+    domain: '${siteId}.neostream.com.br', // TODO: Substitua pelo seu domínio
+    url: 'https://${siteId}.neostream.com.br', // TODO: Substitua pela sua URL
     logo: '/logo.png',
     favicon: '/favicon.ico',
     adsenseId: 'ca-pub-XXXXXXXXXX', // TODO: Substitua pelo seu ID do AdSense
@@ -186,8 +186,8 @@ export const ${siteId.replace(/-/g, '')}Config: SiteConfig = {
     defaultLocale: 'pt-BR',
     author: {
         name: 'Autor do ${siteName}',
-        email: 'contato@${siteId}.com', // TODO: Substitua pelo seu email
-        url: 'https://${siteId}.com'
+        email: 'contato@${siteId}.neostream.com.br', // TODO: Substitua pelo seu email
+        url: 'https://${siteId}.neostream.com.br'
     },
     social: {
         twitter: '@${siteId}', // TODO: Substitua pelo seu Twitter

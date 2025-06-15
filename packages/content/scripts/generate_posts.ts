@@ -93,11 +93,11 @@ async function generatePostContent(topic: string): Promise<PostContent> {
 Requisitos:
 - Título chamativo e otimizado para SEO (até 60 caracteres)
 - Descrição de 150-160 caracteres
-- Artigo entre 1200 e 2000 palavras
+- Artigo entre 5000 e 10000 palavras
 - Use ## e ### com palavras-chave relevantes
 - Inclua pelo menos uma lista numerada ou tabela
 - Finalize com uma conclusão convidando o leitor a comentar
-- 3-6 tags pertinentes
+- 5-10 tags pertinentes
 - Formato Markdown válido
 - Não inclua links externos; use /posts/slug-relacionado onde fizer sentido para links internos
 

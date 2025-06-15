@@ -2,23 +2,23 @@ import type { SiteConfig } from '../site-config'
 
 export const technewsConfig: SiteConfig = {
     name: 'Tech News',
-    description: 'Notícias sobre tecnologia',
-    domain: 'tech-news.com', // TODO: Substitua pelo seu domínio
-    url: 'https://tech-news.com', // TODO: Substitua pela sua URL
+    description: 'Notícias sobre tecnologia e inovação',
+    domain: 'tech-news.neostream.com.br',
+    url: 'https://tech-news.neostream.com.br',
     logo: '/logo.png',
     favicon: '/favicon.ico',
     adsenseId: 'ca-pub-XXXXXXXXXX', // TODO: Substitua pelo seu ID do AdSense
-    themeColor: '#3b82f6', // blue-500
+    themeColor: '#33ed05',
     defaultLocale: 'pt-BR',
     author: {
         name: 'Autor do Tech News',
-        email: 'contato@tech-news.com', // TODO: Substitua pelo seu email
-        url: 'https://tech-news.com'
+        email: 'contato@neostream.com.br',
+        url: 'https://tech-news.neostream.com.br'
     },
     social: {
-        twitter: '@tech-news', // TODO: Substitua pelo seu Twitter
-        github: 'username/tech-news', // TODO: Substitua pelo seu GitHub
-        linkedin: 'company/tech-news' // TODO: Substitua pelo seu LinkedIn
+        twitter: '@neostream',
+        github: 'neostream',
+        linkedin: 'neostream'
     },
     seo: {
         defaultTitle: 'Tech News',
