@@ -46,6 +46,7 @@ function createSite(siteId, siteName, siteDescription) {
             "@multi-site-ai/shared-app": "file:../../packages/shared-app",
             "@multi-site-ai/config": "file:../../packages/config",
             "@multi-site-ai/ui": "file:../../packages/ui",
+            "@multi-site-ai/content": "file:../../packages/content",
             "@tailwindcss/typography": "^0.5.10",
             "next": "^14.0.0",
             "react": "^18.0.0",
@@ -245,6 +246,22 @@ export async function GET() {
             );
         }
     });
+
+    // Adicionar '@multi-site-ai/content' em transpilePackages no next.config.mjs
+    const nextConfigPath = path.join(siteDir, 'next.config.mjs')
+    if (fs.existsSync(nextConfigPath)) {
+        let nextConfigContent = fs.readFileSync(nextConfigPath, 'utf8')
+        if (nextConfigContent.includes('transpilePackages')) {
+            nextConfigContent = nextConfigContent.replace(
+                /transpilePackages:\s*\[(.*?)\]/,
+                (match, p1) => {
+                    if (p1.includes("'@multi-site-ai/content'")) return match
+                    return match.replace(p1, `${p1}, '@multi-site-ai/content'`)
+                }
+            )
+            fs.writeFileSync(nextConfigPath, nextConfigContent)
+        }
+    }
 
     // 7. Criar pasta de conteúdo
     fs.mkdirSync(contentDir, { recursive: true });

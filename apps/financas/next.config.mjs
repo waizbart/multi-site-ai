@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    transpilePackages: ['@multi-site-ai/shared-app'],
+    transpilePackages: ['@multi-site-ai/shared-app', '@multi-site-ai/content'],
     reactStrictMode: true,
     swcMinify: true,
     images: {
