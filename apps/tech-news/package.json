@@ -13,6 +13,7 @@
         "@multi-site-ai/shared-app": "file:../../packages/shared-app",
         "@multi-site-ai/config": "file:../../packages/config",
         "@multi-site-ai/ui": "file:../../packages/ui",
+        "@multi-site-ai/content": "file:../../packages/content",
         "@tailwindcss/typography": "^0.5.10",
         "next": "^14.0.0",
         "react": "^18.0.0",
