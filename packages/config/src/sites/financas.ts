@@ -7,7 +7,7 @@ export const financasConfig: SiteConfig = {
     url: 'https://financas.neostream.com.br', // TODO: Substitua pela sua URL
     logo: '/logo.png',
     favicon: '/favicon.ico',
-    adsenseId: 'ca-pub-XXXXXXXXXX', // TODO: Substitua pelo seu ID do AdSense
+    adsenseId: 'ca-pub-6189411019780384', // TODO: Substitua pelo seu ID do AdSense
     themeColor: '#3b82f6', // blue-500
     defaultLocale: 'pt-BR',
     author: {

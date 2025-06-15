@@ -7,7 +7,7 @@ export const technewsConfig: SiteConfig = {
     url: 'https://tech-news.neostream.com.br',
     logo: '/logo.png',
     favicon: '/favicon.ico',
-    adsenseId: 'ca-pub-XXXXXXXXXX', // TODO: Substitua pelo seu ID do AdSense
+    adsenseId: 'ca-pub-6189411019780384', // TODO: Substitua pelo seu ID do AdSense
     themeColor: '#33ed05',
     defaultLocale: 'pt-BR',
     author: {
