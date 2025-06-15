@@ -2,8 +2,8 @@ name: IA Content & Deploy
 
 on:
   schedule:
-    # Todo dia às 04:00 UTC (01:00 BRT)
-    - cron: '0 4 * * *'
+    # Todo dia às 07:00 UTC (04:00 BRT)
+    - cron: '0 7 * * *'
   push:
     branches: [main]
   workflow_dispatch: # Permite execução manual
