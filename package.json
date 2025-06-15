@@ -1,0 +1,29 @@
+{
+    "name": "multi-site-ai",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Monorepo template para múltiplos sites de conteúdo gerado por IA",
+    "scripts": {
+        "build:all": "turbo build",
+        "dev": "turbo dev",
+        "lint": "turbo lint",
+        "clean": "turbo clean",
+        "generate-posts": "npm --prefix packages/content run generate-posts",
+        "create-site": "node scripts/create-site.js",
+        "remove-site": "node scripts/remove-site.js"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "turbo": "^2.5.4",
+        "typescript": "^5.0.0"
+    },
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "packageManager": "npm@10.0.0",
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=10.0.0"
+    }
+}

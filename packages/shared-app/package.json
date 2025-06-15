@@ -1,0 +1,33 @@
+{
+    "name": "@multi-site-ai/shared-app",
+    "version": "1.0.0",
+    "description": "Shared Next.js app structure for multi-site AI",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "dev": "tsc --watch",
+        "clean": "rm -rf dist"
+    },
+    "dependencies": {
+        "next": "^14.0.0",
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0",
+        "react-markdown": "^9.0.0",
+        "gray-matter": "^4.0.3",
+        "@multi-site-ai/config": "file:../config",
+        "@multi-site-ai/ui": "file:../ui",
+        "lucide-react": "^0.292.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@types/react": "^18.0.0",
+        "@types/react-dom": "^18.0.0",
+        "@types/node": "^20.0.0"
+    },
+    "peerDependencies": {
+        "next": "^14.0.0",
+        "react": "^18.0.0",
+        "react-dom": "^18.0.0"
+    }
+}

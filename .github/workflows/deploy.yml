@@ -1,0 +1,127 @@
+name: IA Content & Deploy
+
+on:
+  schedule:
+    # Todo dia às 04:00 UTC (01:00 BRT)
+    - cron: '0 4 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch: # Permite execução manual
+
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  DALLE_ORG_ID: ${{ secrets.DALLE_ORG_ID }}
+  POSTS_PER_DAY: ${{ secrets.POSTS_PER_DAY || '5' }}
+  DEFAULT_SITE: 'site-template'
+  REVALIDATE_TOKEN: ${{ secrets.REVALIDATE_TOKEN }}
+
+jobs:
+  generate-and-deploy:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 'latest'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm turbo run build --filter="@multi-site-ai/*"
+
+      - name: Generate new posts
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: pnpm --filter packages/content exec ts-node scripts/generate_posts.ts
+        env:
+          OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
+          DALLE_ORG_ID: ${{ env.DALLE_ORG_ID }}
+          POSTS_PER_DAY: ${{ env.POSTS_PER_DAY }}
+          DEFAULT_SITE: ${{ env.DEFAULT_SITE }}
+
+      - name: Check for new content
+        id: check_changes
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "New content detected"
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No new content"
+          fi
+
+      - name: Commit new posts
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git config user.name "IA Content Bot"
+          git config user.email "bot@multi-site-ai.com"
+          git add .
+          git commit -m "chore(content): add daily posts $(date -u +'%Y-%m-%d')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to Vercel - Site Template
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_SITE_TEMPLATE }}
+          working-directory: apps/site-template
+          vercel-args: '--prod'
+
+      # TODO: Adicione mais deploys para outros sites
+      # - name: Deploy to Vercel - Site Foo
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_SITE_FOO }}
+      #     working-directory: apps/site-foo
+      #     vercel-args: '--prod'
+
+      - name: Trigger ISR revalidation
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          # Revalidar homepage
+          curl -X POST "${{ secrets.SITE_TEMPLATE_URL }}/api/revalidate" \
+            -H "Authorization: Bearer ${{ env.REVALIDATE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"path": "/"}'
+        continue-on-error: true
+
+      - name: Create summary
+        run: |
+          echo "## 🚀 Deploy Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New content**: ${{ steps.check_changes.outputs.changes }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.check_changes.outputs.changes }}" == "true" ]]; then
+            echo "- **Posts generated**: ${{ env.POSTS_PER_DAY }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Job separado para monitoramento
+  monitor:
+    if: failure()
+    needs: [generate-and-deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify failure
+        run: |
+          echo "❌ Deploy failed - check logs and fix issues"
+          # TODO: Adicione notificação via Slack/Discord/Email se necessário 

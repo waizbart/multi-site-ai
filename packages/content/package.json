@@ -1,0 +1,31 @@
+{
+    "name": "@multi-site-ai/content",
+    "version": "1.0.0",
+    "private": true,
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "contentlayer build && tsc",
+        "dev": "contentlayer dev",
+        "clean": "rm -rf dist .contentlayer",
+        "generate-posts": "ts-node scripts/generate_posts.ts",
+        "create-samples": "ts-node scripts/create_sample_posts.ts"
+    },
+    "dependencies": {
+        "contentlayer": "^0.3.4",
+        "next-contentlayer": "^0.3.4",
+        "gray-matter": "^4.0.3",
+        "remark-gfm": "^4.0.0",
+        "rehype-slug": "^6.0.0",
+        "rehype-autolink-headings": "^7.1.0",
+        "rehype-pretty-code": "^0.10.0",
+        "openai": "^4.20.0",
+        "slugify": "^1.6.6"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0",
+        "ts-node": "^10.9.0",
+        "dotenv": "^16.3.0"
+    }
+}
