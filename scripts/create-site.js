@@ -111,6 +111,113 @@ export default postPageConfig.PostPage`;
 
     fs.writeFileSync(path.join(siteDir, 'app', '[slug]', 'page.tsx'), postPageContent);
 
+    // 5.1 Criar rotas SEO (sitemap, robots, rss)
+    const seoRoutes = [
+        {
+            dir: ['sitemap.xml'],
+            filename: 'route.ts',
+            content: `// @ts-nocheck
+import { MetadataRoute } from 'next'
+import { getPostsBySite } from '@multi-site-ai/content'
+import { getSiteConfig } from '@multi-site-ai/config'
+
+const SITE_ID = '${siteId}'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+    const posts = getPostsBySite(SITE_ID)
+    const siteConfig = getSiteConfig(SITE_ID)
+    const baseUrl = siteConfig.url.replace(/\\/$/, '')
+    return [
+        {
+            url: baseUrl,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 1,
+        },
+        ...posts.map((post: any) => ({
+            url: \`${baseUrl}/\${post.slug}\`,
+            lastModified: new Date(post.date),
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        })),
+    ]
+}`
+        },
+        {
+            dir: ['robots.txt'],
+            filename: 'route.ts',
+            content: `// @ts-nocheck
+import { MetadataRoute } from 'next'
+import { getSiteConfig } from '@multi-site-ai/config'
+
+const SITE_ID = '${siteId}'
+
+export default function robots(): MetadataRoute.Robots {
+    const siteConfig = getSiteConfig(SITE_ID)
+    const baseUrl = siteConfig.url.replace(/\\/$/, '')
+    return {
+        rules: {
+            userAgent: '*',
+            allow: '/',
+        },
+        sitemap: \`${baseUrl}/sitemap.xml\`,
+        host: baseUrl,
+    }
+}`
+        },
+        {
+            dir: ['rss.xml'],
+            filename: 'route.ts',
+            content: `// @ts-nocheck
+import { getPostsBySite } from '@multi-site-ai/content'
+import { getSiteConfig } from '@multi-site-ai/config'
+
+const SITE_ID = '${siteId}'
+
+export async function GET() {
+    const posts = getPostsBySite(SITE_ID)
+    const siteConfig = getSiteConfig(SITE_ID)
+    const baseUrl = siteConfig.url.replace(/\\/$/, '')
+
+    const items = posts.map((post: any) => {
+        const link = \`${baseUrl}/\${post.slug}\`
+        return (
+            '<item>' +
+            '<title><![CDATA[' + post.title + ']]></title>' +
+            '<link>' + link + '</link>' +
+            '<description><![CDATA[' + post.description + ']]></description>' +
+            '<pubDate>' + new Date(post.date).toUTCString() + '</pubDate>' +
+            '<guid isPermaLink="true">' + link + '</guid>' +
+            '</item>'
+        )
+    }).join('')
+
+    const feed =
+        '<?xml version="1.0" encoding="UTF-8"?>' +
+        '<rss version="2.0">' +
+        '<channel>' +
+        '<title>' + siteConfig.name + '</title>' +
+        '<link>' + baseUrl + '</link>' +
+        '<description>' + siteConfig.description + '</description>' +
+        items +
+        '</channel>' +
+        '</rss>'
+
+    return new Response(feed, {
+        headers: {
+            'Content-Type': 'application/xml; charset=utf-8',
+        },
+    })
+}`
+        },
+    ]
+
+    seoRoutes.forEach(({ dir, filename, content }) => {
+        const routeDir = path.join(siteDir, 'app', ...dir)
+        fs.mkdirSync(routeDir, { recursive: true })
+        fs.writeFileSync(path.join(routeDir, filename), content)
+    })
+
     // 6. Copiar arquivos de configuração do template
     const templateDir = path.join(appsDir, 'site-template');
 
