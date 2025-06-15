@@ -8,7 +8,8 @@
         "dev": "turbo dev",
         "lint": "turbo lint",
         "clean": "turbo clean",
-        "generate-posts": "npm --prefix packages/content run generate-posts",
+        "generate-posts": "npm run generate-posts --workspace=@multi-site-ai/content",
+        "gp": "npm run generate-posts --workspace=@multi-site-ai/content",
         "create-site": "node scripts/create-site.js",
         "remove-site": "node scripts/remove-site.js"
     },

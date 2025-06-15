@@ -1,47 +1,44 @@
 #!/usr/bin/env ts-node
 
+/*
+ * Gera posts diários para TODOS os sites cadastrados em packages/config.
+ * 1. Descobre os tópicos em alta usando google-trends-api a partir das keywords do próprio site.
+ * 2. Usa OpenAI GPT para produzir o conteúdo em Markdown seguindo boas práticas de SEO.
+ * 3. Salva o .mdx em packages/content/sites/<site-id>/.
+ * 4. Faz commit automático com git.
+ */
+
 import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
 import OpenAI from 'openai'
 import slugify from 'slugify'
 import dotenv from 'dotenv'
+import * as googleTrends from 'google-trends-api'
 
-// Carregar variáveis de ambiente
+// Importa configs dos sites diretamente da fonte TS
+import { siteConfigs } from '../../config/src/sites'
+import type { SiteConfig } from '../../config/src/site-config'
+
+// ───────────────────────────────────────────────
+// SETUP
+// ───────────────────────────────────────────────
+
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') })
 
-// Configuração
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-const DEFAULT_SITE = process.env.DEFAULT_SITE || 'site-template'
-const POSTS_PER_DAY = parseInt(process.env.POSTS_PER_DAY || '5')
-
 if (!OPENAI_API_KEY) {
     console.error('❌ OPENAI_API_KEY não encontrada nas variáveis de ambiente')
     process.exit(1)
 }
 
-const openai = new OpenAI({
-    apiKey: OPENAI_API_KEY,
-})
+const POSTS_PER_SITE = parseInt(process.env.POSTS_PER_SITE || process.env.POSTS_PER_DAY || '5')
+// Se quiser limitar a execução para sites específicos, ex: SITES=tech-news,fin-news
+const TARGET_SITES = process.env.SITES
+    ? process.env.SITES.split(',').map(s => s.trim())
+    : Object.keys(siteConfigs)
 
-// Tópicos de exemplo (você pode personalizar ou buscar de uma API)
-const TOPICS = [
-    'Inteligência Artificial e Automação',
-    'Tecnologias Emergentes',
-    'Desenvolvimento Web Moderno',
-    'Tendências em UX/UI Design',
-    'Sustentabilidade e Tecnologia',
-    'Segurança Cibernética',
-    'Blockchain e Criptomoedas',
-    'Internet das Coisas (IoT)',
-    'Realidade Virtual e Aumentada',
-    'Machine Learning para Iniciantes',
-    'DevOps e Cloud Computing',
-    'Programação para Móveis',
-    'Data Science e Analytics',
-    'Startups e Empreendedorismo Tech',
-    'Futuro do Trabalho Remoto'
-]
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
 interface PostContent {
     title: string
@@ -51,185 +48,203 @@ interface PostContent {
     image?: string
 }
 
+// ───────────────────────────────────────────────
+// HELPERS
+// ───────────────────────────────────────────────
+
+async function getTrendingTopics(
+    keywords: string[],
+    count = 5,
+    geo = 'BR'
+): Promise<string[]> {
+    if (keywords.length === 0) return []
+
+    const now = new Date()
+    const from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // últimos 7 dias
+
+    const results = await Promise.all(
+        keywords.map(async (k) => {
+            try {
+                const jsonStr = await googleTrends.interestOverTime({
+                    keyword: k,
+                    startTime: from,
+                    geo,
+                })
+                const data = JSON.parse(jsonStr).default.timelineData as any[]
+                const score = data.reduce((acc, d) => acc + (d.value[0] || 0), 0)
+                return { k, score }
+            } catch (_) {
+                return { k, score: 0 }
+            }
+        })
+    )
+
+    return results
+        .sort((a, b) => b.score - a.score)
+        .slice(0, count)
+        .map((r) => r.k)
+}
+
 async function generatePostContent(topic: string): Promise<PostContent> {
     console.log(`🤖 Gerando conteúdo para: ${topic}`)
 
-    const prompt = `
-Você é um especialista em ${topic}. Escreva um artigo informativo e envolvente sobre este tópico.
+    const prompt = `Você é um(a) especialista em ${topic}. Escreva um artigo aprofundado e envolvente sobre este assunto.
 
 Requisitos:
-- Título atrativo e otimizado para SEO
+- Título chamativo e otimizado para SEO (até 60 caracteres)
 - Descrição de 150-160 caracteres
-- Artigo de 800-1200 palavras
-- Tom profissional mas acessível
-- Inclua exemplos práticos quando possível
-- 3-5 tags relevantes
-- Formatação em Markdown
-- Subseções com ## e ###
+- Artigo entre 1200 e 2000 palavras
+- Use ## e ### com palavras-chave relevantes
+- Inclua pelo menos uma lista numerada ou tabela
+- Finalize com uma conclusão convidando o leitor a comentar
+- 3-6 tags pertinentes
+- Formato Markdown válido
+- Não inclua links externos; use /posts/slug-relacionado onde fizer sentido para links internos
 
-Responda APENAS no formato JSON:
+Responda APENAS em JSON neste formato:
 {
   "title": "Título do artigo",
   "description": "Descrição breve",
   "content": "Conteúdo completo em markdown",
   "tags": ["tag1", "tag2", "tag3"]
-}
-`
+}`
 
-    try {
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.7,
-            max_tokens: 2000,
-        })
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+        max_tokens: 3000,
+    })
 
-        const responseContent = completion.choices[0]?.message?.content
-        if (!responseContent) {
-            throw new Error('Resposta vazia da OpenAI')
-        }
+    const responseContent = completion.choices[0]?.message?.content ?? ''
 
-        // Parse do JSON da resposta
-        const jsonMatch = responseContent.match(/\{[\s\S]*\}/)
-        if (!jsonMatch) {
-            throw new Error('Formato JSON não encontrado na resposta')
-        }
-
-        const postData = JSON.parse(jsonMatch[0]) as PostContent
-
-        console.log(`✅ Conteúdo gerado: ${postData.title}`)
-        return postData
-
-    } catch (error) {
-        console.error(`❌ Erro ao gerar conteúdo para ${topic}:`, error)
-        throw error
+    const jsonMatch = responseContent.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+        throw new Error('Formato JSON não encontrado na resposta da OpenAI')
     }
+
+    const postData = JSON.parse(jsonMatch[0]) as PostContent
+    console.log(`✅ Conteúdo gerado: ${postData.title}`)
+    return postData
 }
 
 async function generateImage(prompt: string): Promise<string | undefined> {
-    // TODO: Implementar geração de imagem com DALL-E 3
-    // if (process.env.DALLE_ORG_ID) {
-    //   try {
-    //     const response = await openai.images.generate({
-    //       model: "dall-e-3",
-    //       prompt: `Professional blog header image: ${prompt}`,
-    //       size: "1792x1024",
-    //       quality: "standard",
-    //       n: 1,
-    //     })
-    //     return response.data[0]?.url
-    //   } catch (error) {
-    //     console.warn('⚠️ Erro ao gerar imagem:', error)
-    //   }
-    // }
+    // TODO: Implementar geração de imagem com DALL-E 3 caso deseje
     return undefined
 }
 
-function createMDXFile(postData: PostContent, siteId: string): string {
-    const today = new Date().toISOString().split('T')[0]
+function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteConfig): string {
+    const todayISO = new Date().toISOString()
     const slug = slugify(postData.title, { lower: true, strict: true })
 
-    const frontmatter = `---
-title: "${postData.title}"
-description: "${postData.description}"
-date: "${today}"
-tags: [${postData.tags.map(tag => `"${tag}"`).join(', ')}]
-site: "${siteId}"
-draft: false
-featured: false
-${postData.image ? `image: "${postData.image}"` : ''}
----
+    const frontmatterLines = [
+        '---',
+        `title: "${postData.title.replace(/"/g, '\"')}"`,
+        `description: "${postData.description.replace(/"/g, '\"')}"`,
+        `date: "${todayISO}"`,
+        `slug: "${slug}"`,
+        `canonical: "${siteConfig.url.replace(/\/$/, '')}/posts/${slug}"`,
+        `tags: [${postData.tags.map((tag) => `"${tag}"`).join(', ')}]`,
+        `site: "${siteId}"`,
+        'draft: false',
+        'featured: false',
+    ]
 
-${postData.content}`
+    if (postData.image) {
+        frontmatterLines.push(`featuredImage: "${postData.image}"`)
+    }
 
-    return frontmatter
+    frontmatterLines.push('---', '', postData.content)
+
+    return frontmatterLines.join('\n')
 }
 
-async function savePost(postData: PostContent, siteId: string): Promise<string> {
-    const today = new Date().toISOString().split('T')[0]
+async function savePost(postData: PostContent, siteId: string, siteConfig: SiteConfig): Promise<string> {
     const slug = slugify(postData.title, { lower: true, strict: true })
-    const filename = `${today}-${slug}.mdx`
+    const filename = `${new Date().toISOString().split('T')[0]}-${slug}.mdx`
 
-    // Criar diretório se não existir
     const sitePath = path.join(__dirname, '..', 'sites', siteId)
     if (!fs.existsSync(sitePath)) {
         fs.mkdirSync(sitePath, { recursive: true })
     }
 
     const filePath = path.join(sitePath, filename)
-    const mdxContent = createMDXFile(postData, siteId)
+    const mdxContent = createMDXFile(postData, siteId, siteConfig)
 
     fs.writeFileSync(filePath, mdxContent)
     console.log(`📝 Post salvo: ${filePath}`)
-
     return filePath
-}
-
-function getRandomTopics(count: number): string[] {
-    const shuffled = [...TOPICS].sort(() => 0.5 - Math.random())
-    return shuffled.slice(0, count)
 }
 
 async function commitChanges() {
     try {
-        const today = new Date().toISOString().split('T')[0]
         execSync('git add .', { cwd: path.join(__dirname, '../../..') })
-        execSync(`git commit -m "chore(content): add daily posts ${today}"`, {
-            cwd: path.join(__dirname, '../../..')
+        execSync(`git commit -m "chore(content): daily auto-generated posts"`, {
+            cwd: path.join(__dirname, '../../..'),
         })
         console.log('✅ Mudanças commitadas com sucesso')
     } catch (error) {
-        console.warn('⚠️ Erro ao fazer commit (talvez não há mudanças):', error)
+        console.warn('⚠️  Erro ao fazer commit (talvez não há mudanças):', error)
     }
 }
 
+// ───────────────────────────────────────────────
+// MAIN
+// ───────────────────────────────────────────────
+
 async function main() {
     console.log('🚀 Iniciando geração de posts diários...')
-    console.log(`📊 Configuração:`)
-    console.log(`   - Site: ${DEFAULT_SITE}`)
-    console.log(`   - Posts por dia: ${POSTS_PER_DAY}`)
+    console.log(`📊 Sites alvo: ${TARGET_SITES.join(', ')}`)
+    console.log(`📄 Posts por site: ${POSTS_PER_SITE}`)
 
-    const topics = getRandomTopics(POSTS_PER_DAY)
-    const generatedPosts: string[] = []
+    const generatedFiles: string[] = []
 
-    for (const topic of topics) {
-        try {
-            const postData = await generatePostContent(topic)
-            const image = await generateImage(postData.title)
-
-            if (image) {
-                postData.image = image
-            }
-
-            const filePath = await savePost(postData, DEFAULT_SITE)
-            generatedPosts.push(filePath)
-
-            // Pequena pausa entre as chamadas da API
-            await new Promise(resolve => setTimeout(resolve, 1000))
-
-        } catch (error) {
-            console.error(`❌ Erro ao processar tópico "${topic}":`, error)
+    for (const siteId of TARGET_SITES) {
+        const siteConfig = siteConfigs[siteId]
+        if (!siteConfig) {
+            console.warn(`⚠️  Configuração não encontrada para o site: ${siteId}`)
             continue
+        }
+
+        console.log(`\n📰 Site: ${siteId}`)
+        let topics: string[] = []
+        try {
+            topics = await getTrendingTopics(siteConfig.seo.keywords, POSTS_PER_SITE)
+        } catch (err) {
+            console.warn('⚠️  Falha ao obter tópicos em alta, usando keywords aleatórias')
+            topics = [...siteConfig.seo.keywords].sort(() => 0.5 - Math.random()).slice(0, POSTS_PER_SITE)
+        }
+
+        for (const topic of topics) {
+            try {
+                const postData = await generatePostContent(topic)
+                const image = await generateImage(postData.title)
+                if (image) postData.image = image
+
+                const filePath = await savePost(postData, siteId, siteConfig)
+                generatedFiles.push(filePath)
+
+                // Respeita rate-limit da OpenAI
+                await new Promise((r) => setTimeout(r, 1000))
+            } catch (err) {
+                console.error(`❌ Erro ao gerar post para o tópico "${topic}":`, err)
+            }
         }
     }
 
-    if (generatedPosts.length > 0) {
-        console.log(`\n✅ ${generatedPosts.length} posts gerados com sucesso!`)
-        console.log('📋 Arquivos criados:')
-        generatedPosts.forEach(file => console.log(`   - ${file}`))
-
-        // Fazer commit automático
+    if (generatedFiles.length) {
         await commitChanges()
+        console.log('\n✅ Concluído! Posts gerados:')
+        generatedFiles.forEach((f) => console.log('   -', f))
     } else {
-        console.log('❌ Nenhum post foi gerado.')
+        console.log('❌ Nenhum post gerado.')
         process.exit(1)
     }
 }
 
-// Executar script se chamado diretamente
 if (require.main === module) {
-    main().catch((error) => {
-        console.error('❌ Erro fatal:', error)
+    main().catch((err) => {
+        console.error('❌ Erro fatal:', err)
         process.exit(1)
     })
 } 

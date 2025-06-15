@@ -20,7 +20,8 @@
         "rehype-autolink-headings": "^7.1.0",
         "rehype-pretty-code": "^0.10.0",
         "openai": "^4.20.0",
-        "slugify": "^1.6.6"
+        "slugify": "^1.6.6",
+        "google-trends-api": "^4.9.0"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
