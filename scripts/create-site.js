@@ -135,7 +135,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 1,
         },
         ...posts.map((post: any) => ({
-            url: \`${baseUrl}/\${post.slug}\`,
+            url: \`\${baseUrl}/\${post.slug}\`,
             lastModified: new Date(post.date),
             changeFrequency: 'weekly',
             priority: 0.8,
@@ -160,7 +160,7 @@ export default function robots(): MetadataRoute.Robots {
             userAgent: '*',
             allow: '/',
         },
-        sitemap: \`${baseUrl}/sitemap.xml\`,
+        sitemap: \`\${baseUrl}/sitemap.xml\`,
         host: baseUrl,
     }
 }`
@@ -180,7 +180,7 @@ export async function GET() {
     const baseUrl = siteConfig.url.replace(/\\/$/, '')
 
     const items = posts.map((post: any) => {
-        const link = \`${baseUrl}/\${post.slug}\`
+        const link = \`\${baseUrl}/\${post.slug}\`
         return (
             '<item>' +
             '<title><![CDATA[' + post.title + ']]></title>' +

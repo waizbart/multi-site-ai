@@ -1,8 +1,10 @@
 import { technewsConfig } from './tech-news'
 import type { SiteConfig } from '../site-config'
+import { financasConfig } from './financas'
 
 export const siteConfigs: Record<string, SiteConfig> = {
     'tech-news': technewsConfig,
+    'financas': financasConfig,
     // Adicione novas configurações de sites aqui
     // 'site-foo': siteFooConfig,
 }
@@ -15,5 +17,5 @@ export function getSiteConfig(siteId: string): SiteConfig {
     return config
 }
 
-export { technewsConfig }
+export { technewsConfig, financasConfig }
 export type { SiteConfig } 

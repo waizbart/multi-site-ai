@@ -35,8 +35,8 @@ if (!OPENAI_API_KEY) {
 const POSTS_PER_SITE = parseInt(process.env.POSTS_PER_SITE || process.env.POSTS_PER_DAY || '5')
 // Se quiser limitar a execução para sites específicos, ex: SITES=tech-news,fin-news
 const TARGET_SITES = process.env.SITES
-    ? process.env.SITES.split(',').map(s => s.trim())
-    : Object.keys(siteConfigs)
+    ? process.env.SITES.split(',').map((s) => s.trim()).filter(Boolean).filter((s) => s !== 'site-template')
+    : Object.keys(siteConfigs).filter((s) => s !== 'site-template')
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
