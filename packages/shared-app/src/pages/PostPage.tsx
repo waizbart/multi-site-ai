@@ -7,6 +7,7 @@ import { Badge, formatDate } from '@multi-site-ai/ui'
 import { Clock, Calendar, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { getAllPosts, getPostBySlug } from '../lib/posts'
 
 interface PostPageProps {
@@ -155,7 +156,7 @@ export function createPostPage(siteId: string) {
 
                     {/* Content */}
                     <div className="prose prose-lg max-w-none">
-                        <ReactMarkdown>{post.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
                     </div>
 
                     {/* Footer */}

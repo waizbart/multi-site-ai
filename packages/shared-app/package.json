@@ -17,7 +17,8 @@
         "gray-matter": "^4.0.3",
         "@multi-site-ai/config": "file:../config",
         "@multi-site-ai/ui": "file:../ui",
-        "lucide-react": "^0.292.0"
+        "lucide-react": "^0.292.0",
+        "remark-gfm": "^4.0.0"
     },
     "devDependencies": {
         "typescript": "^5.0.0",
