@@ -2,11 +2,15 @@ import { technewsConfig } from './tech-news'
 import type { SiteConfig } from '../site-config'
 import { financasConfig } from './financas'
 import { automoveisConfig } from './automoveis'
+import { saudealimentacaoConfig } from './saude-alimentacao'
+import { viagemlifestyleConfig } from './viagem-lifestyle'
 
 export const siteConfigs: Record<string, SiteConfig> = {
     'tech-news': technewsConfig,
     'financas': financasConfig,
     'automoveis': automoveisConfig,
+    'saude-alimentacao': saudealimentacaoConfig,
+    'viagem-lifestyle': viagemlifestyleConfig,
     // Adicione novas configurações de sites aqui
     // 'site-foo': siteFooConfig,
 }
@@ -19,5 +23,5 @@ export function getSiteConfig(siteId: string): SiteConfig {
     return config
 }
 
-export { technewsConfig, financasConfig, automoveisConfig }
+export { technewsConfig, financasConfig, automoveisConfig, saudealimentacaoConfig, viagemlifestyleConfig }
 export type { SiteConfig } 
