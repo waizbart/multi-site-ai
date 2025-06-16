@@ -13,8 +13,8 @@ export default function NavBar({ title }: NavBarProps) {
 
     return (
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur border-b">
-            <div className="container flex h-14 items-center justify-between">
-                <Link href="/" className="m-8 font-bold text-lg">
+            <div className="flex h-14 w-full items-center justify-between px-6">
+                <Link href="/" className="font-bold text-lg">
                     {title}
                 </Link>
                 <button
