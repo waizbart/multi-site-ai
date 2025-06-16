@@ -37,9 +37,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build packages
-        run: npm run build:all
-
       - name: Generate new posts
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: npm run generate-posts
