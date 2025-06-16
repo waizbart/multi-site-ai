@@ -212,6 +212,6 @@ prose pre code {
     .bg-flow {
         background: linear-gradient(270deg, hsl(var(--primary)), #9333ea, #ec4899);
         background-size: 600% 600%;
-        animation: gradient 12s ease infinite;
+        animation: gradient 6s ease infinite;
     }
 }
