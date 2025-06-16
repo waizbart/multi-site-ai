@@ -105,9 +105,9 @@ async function generatePostContent(topic: string, existingTitles: string[]): Pro
 Adicionalmente, o novo artigo NÃO deve ser apenas uma reformulação dos conteúdos anteriores nem ter título ou descrição muito parecidos com os listados. Apresente perspectivas, exemplos ou dados inéditos.
 
 ### Regras de Markdown (obrigatório seguir)
-1. NÃO coloque “{#alguma-coisa}” depois de headings.
+1. NÃO coloque "{#alguma-coisa}" depois de headings.
 2. NÃO escreva IDs de âncora manualmente.
-3. Headings devem ser somente o texto, por ex. “## Meu Título”.
+3. Headings devem ser somente o texto, por ex. "## Meu Título".
 
 Responda APENAS em JSON neste formato:
 {
@@ -145,6 +145,8 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
     const todayISO = new Date().toISOString()
     const slug = slugify(postData.title, { lower: true, strict: true })
 
+    const safeTags = Array.isArray(postData.tags) ? postData.tags.filter((t) => typeof t === 'string') : []
+
     const frontmatterLines = [
         '---',
         `title: "${postData.title.replace(/"/g, '\"')}"`,
@@ -152,7 +154,7 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
         `date: "${todayISO}"`,
         `slug: "${slug}"`,
         `canonical: "${siteConfig.url.replace(/\/$/, '')}/posts/${slug}"`,
-        `tags: [${postData.tags.map((tag) => `"${tag}"`).join(', ')}]`,
+        `tags: [${safeTags.map((tag) => `"${tag}"`).join(', ')}]`,
         `site: "${siteId}"`,
         'draft: false',
         'featured: false',
