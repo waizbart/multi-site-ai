@@ -11,7 +11,8 @@
         "generate-posts": "npm run generate-posts --workspace=@multi-site-ai/content",
         "gp": "npm run generate-posts --workspace=@multi-site-ai/content",
         "create-site": "node scripts/create-site.js",
-        "remove-site": "node scripts/remove-site.js"
+        "remove-site": "node scripts/remove-site.js",
+        "postinstall": "npm run build --workspace=@multi-site-ai/content"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",
