@@ -30,14 +30,14 @@ export function createHomePage(siteId: string) {
                         </h1>
                         <div className="flex items-center justify-center gap-2 mb-8">
                             <span className="text-lg text-muted-foreground">by</span>
-                            <div className="flex items-center rounded-md border text-xs border-primary" style={{ fontFamily: "Lexend Zetta" }}>
+                            <Link href="https://neostream.com.br" target="_blank" className="flex items-center rounded-md border text-xs border-primary" style={{ fontFamily: "Lexend Zetta" }}>
                                 <span className="px-2 py-1 bg-primary text-white dark:bg-white dark:text-primary font-bold rounded-l-md">
                                     neo
                                 </span>
                                 <span className="px-2 py-1 text-black dark:text-white font-bold">
                                     Stream
                                 </span>
-                            </div>
+                            </Link>
                         </div>
                         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
                             {siteConfig.description}
