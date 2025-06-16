@@ -28,25 +28,21 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 'latest'
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm install
 
       - name: Build packages
-        run: pnpm turbo run build --filter="@multi-site-ai/*"
+        run: npm run build:all
 
       - name: Generate new posts
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: pnpm --filter packages/content exec ts-node scripts/generate_posts.ts
+        run: npm run generate-posts
         env:
           OPENAI_API_KEY: ${{ env.OPENAI_API_KEY }}
           DALLE_ORG_ID: ${{ env.DALLE_ORG_ID }}
