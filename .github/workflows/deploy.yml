@@ -71,25 +71,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to Vercel - Site Template
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_SITE_TEMPLATE }}
-          working-directory: apps/site-template
-          vercel-args: '--prod'
-
-      # TODO: Adicione mais deploys para outros sites
-      # - name: Deploy to Vercel - Site Foo
-      #   uses: amondnet/vercel-action@v25
-      #   with:
-      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
-      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_SITE_FOO }}
-      #     working-directory: apps/site-foo
-      #     vercel-args: '--prod'
-
       - name: Trigger ISR revalidation
         if: steps.check_changes.outputs.changes == 'true'
         run: |
