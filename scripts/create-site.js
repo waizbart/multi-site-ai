@@ -4,10 +4,17 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-function createSite(siteId, siteName, siteDescription) {
+function createSite(siteId, siteName, siteDescription, baseSiteId = 'site-template') {
     if (!siteId || !siteName || !siteDescription) {
-        console.error('❌ Uso: node scripts/create-site.js <site-id> <site-name> <site-description>');
-        console.error('   Exemplo: node scripts/create-site.js tech-blog "Tech Blog" "Blog sobre tecnologia"');
+        console.error('❌ Uso: node scripts/create-site.js <site-id> <site-name> <site-description> [site-base]');
+        console.error('   Exemplo: node scripts/create-site.js tech-blog "Tech Blog" "Blog sobre tecnologia" site-modelo');
+        process.exit(1);
+    }
+
+    // Verifica se o site base existe
+    const baseSiteDir = path.join(__dirname, '..', 'apps', baseSiteId);
+    if (!fs.existsSync(baseSiteDir)) {
+        console.error(`❌ Site base '${baseSiteId}' não encontrado em apps/${baseSiteId}`);
         process.exit(1);
     }
 
@@ -23,7 +30,7 @@ function createSite(siteId, siteName, siteDescription) {
         process.exit(1);
     }
 
-    console.log(`🚀 Criando novo site: ${siteName} (${siteId})`);
+    console.log(`🚀 Criando novo site: ${siteName} (${siteId}) a partir de '${baseSiteId}'`);
 
     // 1. Criar estrutura de pastas do app
     fs.mkdirSync(siteDir, { recursive: true });
@@ -220,7 +227,7 @@ export async function GET() {
     })
 
     // 6. Copiar arquivos de configuração do template
-    const templateDir = path.join(appsDir, 'site-template');
+    const templateDir = path.join(appsDir, baseSiteId);
 
     // Copiar globals.css
     fs.copyFileSync(
@@ -305,7 +312,7 @@ export const ${siteId.replace(/-/g, '')}Config: SiteConfig = {
     url: 'https://${siteId}.neostream.com.br', // TODO: Substitua pela sua URL
     logo: '/logo.png',
     favicon: '/favicon.ico',
-    adsenseId: 'ca-pub-XXXXXXXXXX', // TODO: Substitua pelo seu ID do AdSense
+    adsenseId: 'ca-pub-6189411019780384', // TODO: Substitua pelo seu ID do AdSense
     themeColor: '#3b82f6', // blue-500
     defaultLocale: 'pt-BR',
     author: {
@@ -377,5 +384,5 @@ export const ${siteId.replace(/-/g, '')}Config: SiteConfig = {
 }
 
 // Executar script
-const [, , siteId, siteName, siteDescription] = process.argv;
-createSite(siteId, siteName, siteDescription); 
+const [, , siteId, siteName, siteDescription, baseSiteId] = process.argv;
+createSite(siteId, siteName, siteDescription, baseSiteId); 

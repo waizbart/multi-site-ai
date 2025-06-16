@@ -34,10 +34,20 @@ if (!OPENAI_API_KEY) {
 }
 
 const POSTS_PER_SITE = parseInt(process.env.POSTS_PER_SITE || process.env.POSTS_PER_DAY || '5')
-// Se quiser limitar a execução para sites específicos, ex: SITES=tech-news,fin-news
-const TARGET_SITES = process.env.SITES
-    ? process.env.SITES.split(',').map((s) => s.trim()).filter(Boolean).filter((s) => s !== 'site-template')
-    : Object.keys(siteConfigs).filter((s) => s !== 'site-template')
+
+// Definição de sites alvo
+// Prioridade: argumentos de CLI > variável de ambiente SITES > todos os sites (excluindo site-template)
+const cliArgs = process.argv.slice(2).filter((arg) => !arg.startsWith('-'))
+
+const TARGET_SITES = cliArgs.length
+    ? cliArgs
+    : process.env.SITES
+        ? process.env.SITES.split(',').map((s) => s.trim()).filter(Boolean)
+        : Object.keys(siteConfigs)
+
+            // Remover duplicatas e garantir que não inclua o template
+            .filter((s, idx, arr) => arr.indexOf(s) === idx) // unique
+            .filter((s) => s !== 'site-template')
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
@@ -335,4 +345,4 @@ if (require.main === module) {
         console.error('❌ Erro fatal:', err)
         process.exit(1)
     })
-} 
+}
