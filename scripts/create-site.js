@@ -208,6 +208,15 @@ export async function GET() {
         path.join(siteDir, 'app', 'globals.css')
     );
 
+    // NOVO: Copiar favicon.ico para manter o mesmo ícone em todos os sites
+    const faviconSrc = path.join(templateDir, 'public', 'favicon.ico')
+    const faviconDest = path.join(siteDir, 'public', 'favicon.ico')
+    if (fs.existsSync(faviconSrc)) {
+        fs.copyFileSync(faviconSrc, faviconDest)
+    } else {
+        console.warn(`⚠️  favicon.ico não encontrado em ${faviconSrc}. Adicione manualmente em apps/${siteId}/public se necessário.`)
+    }
+
     // Copiar arquivos de configuração
     const configFiles = [
         'tailwind.config.ts',
