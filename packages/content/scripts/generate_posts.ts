@@ -104,6 +104,11 @@ async function generatePostContent(topic: string, existingTitles: string[]): Pro
 
 Adicionalmente, o novo artigo NÃO deve ser apenas uma reformulação dos conteúdos anteriores nem ter título ou descrição muito parecidos com os listados. Apresente perspectivas, exemplos ou dados inéditos.
 
+### Regras de Markdown (obrigatório seguir)
+1. NÃO coloque “{#alguma-coisa}” depois de headings.
+2. NÃO escreva IDs de âncora manualmente.
+3. Headings devem ser somente o texto, por ex. “## Meu Título”.
+
 Responda APENAS em JSON neste formato:
 {
   "title": "Título do artigo",
