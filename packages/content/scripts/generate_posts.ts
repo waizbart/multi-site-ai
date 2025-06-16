@@ -15,6 +15,7 @@ import OpenAI from 'openai'
 import slugify from 'slugify'
 import dotenv from 'dotenv'
 import * as googleTrends from 'google-trends-api'
+import matter from 'gray-matter'
 
 // Importa configs dos sites diretamente da fonte TS
 import { siteConfigs } from '../../config/src/sites'
@@ -189,6 +190,43 @@ async function commitChanges() {
 }
 
 // ───────────────────────────────────────────────
+// DUPLICATE AVOIDANCE
+// ───────────────────────────────────────────────
+
+function getExistingSlugs(siteId: string): Set<string> {
+    const siteDir = path.join(__dirname, '..', 'sites', siteId)
+    const slugs = new Set<string>()
+
+    if (!fs.existsSync(siteDir)) return slugs
+
+    const files = fs.readdirSync(siteDir).filter((f) => f.endsWith('.mdx'))
+
+    for (const file of files) {
+        try {
+            const filePath = path.join(siteDir, file)
+            const raw = fs.readFileSync(filePath, 'utf-8')
+
+            // Tenta extrair via frontmatter
+            const parsed = matter(raw)
+            if (parsed.data && typeof parsed.data.slug === 'string') {
+                slugs.add(parsed.data.slug)
+                continue
+            }
+
+            // Fallback: usa nome do arquivo (removendo data YYYY-MM-DD-)
+            const match = file.match(/\d{4}-\d{2}-\d{2}-(.+)\.mdx$/)
+            if (match) {
+                slugs.add(match[1])
+            }
+        } catch (_) {
+            /* ignore malformed files */
+        }
+    }
+
+    return slugs
+}
+
+// ───────────────────────────────────────────────
 // MAIN
 // ───────────────────────────────────────────────
 
@@ -215,14 +253,30 @@ async function main() {
             topics = [...siteConfig.seo.keywords].sort(() => 0.5 - Math.random()).slice(0, POSTS_PER_SITE)
         }
 
+        // Remove tópicos cuja slug já exista
+        const existingSlugs = getExistingSlugs(siteId)
+        topics = topics.filter((t) => !existingSlugs.has(slugify(t, { lower: true, strict: true })))
+
+        if (topics.length === 0) {
+            console.log('ℹ️  Nenhum tópico novo para gerar hoje.')
+            continue
+        }
+
         for (const topic of topics) {
             try {
                 const postData = await generatePostContent(topic)
+                const slug = slugify(postData.title, { lower: true, strict: true })
+                if (existingSlugs.has(slug)) {
+                    console.log(`⚠️  Conteúdo já existente para slug "${slug}", ignorando.`)
+                    continue
+                }
+
                 const image = await generateImage(postData.title)
                 if (image) postData.image = image
 
                 const filePath = await savePost(postData, siteId, siteConfig)
                 generatedFiles.push(filePath)
+                existingSlugs.add(slug)
 
                 // Respeita rate-limit da OpenAI
                 await new Promise((r) => setTimeout(r, 1000))
