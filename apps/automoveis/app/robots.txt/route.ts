@@ -1,18 +1,15 @@
 // @ts-nocheck
-import { MetadataRoute } from 'next'
 import { getSiteConfig } from '@multi-site-ai/config'
 
 const SITE_ID = 'automoveis'
 
-export function GET(): MetadataRoute.Robots {
+export function GET() {
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\/$/, '')
-    return {
-        rules: {
-            userAgent: '*',
-            allow: '/',
+    const robots = `User-agent: *\nAllow: /\nSitemap: ${baseUrl}/sitemap.xml\nHost: ${baseUrl}`
+    return new Response(robots, {
+        headers: {
+            'Content-Type': 'text/plain',
         },
-        sitemap: `${baseUrl}/sitemap.xml`,
-        host: baseUrl,
-    }
+    })
 }

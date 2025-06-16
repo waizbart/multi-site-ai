@@ -124,13 +124,12 @@ export default postPageConfig.PostPage`;
         {
             dir: ['sitemap.xml'],
             filename: 'route.ts',
-            content: `import { MetadataRoute } from 'next'
-import { getPostsBySite } from '@multi-site-ai/content'
+            content: `import { getPostsBySite } from '@multi-site-ai/content'
 import { getSiteConfig } from '@multi-site-ai/config'
 
 const SITE_ID = '${siteId}'
 
-export function GET(): MetadataRoute.Sitemap {
+export function GET() {
     const posts = getPostsBySite(SITE_ID)
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\\/$/, '')
@@ -153,22 +152,19 @@ export function GET(): MetadataRoute.Sitemap {
         {
             dir: ['robots.txt'],
             filename: 'route.ts',
-            content: `import { MetadataRoute } from 'next'
-import { getSiteConfig } from '@multi-site-ai/config'
+            content: `import { getSiteConfig } from '@multi-site-ai/config'
 
 const SITE_ID = '${siteId}'
 
-export function GET(): MetadataRoute.Robots {
+export function GET() {
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\\/$/, '')
-    return {
-        rules: {
-            userAgent: '*',
-            allow: '/',
-        },
-        sitemap: \`\${baseUrl}/sitemap.xml\`,
-        host: baseUrl,
-    }
+    const robots = \
+        \`User-agent: *\\nAllow: /\\nSitemap: \${baseUrl}/sitemap.xml\\nHost: \${baseUrl}\`
+
+    return new Response(robots, {
+        headers: { 'Content-Type': 'text/plain' },
+    })
 }`
         },
         {
@@ -185,35 +181,14 @@ export async function GET() {
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\\/$/, '')
 
-    const items = posts.map((post: any) => {
-        const link = \`\${baseUrl}/\${post.slug}\`
-        return (
-            '<item>' +
-            '<title><![CDATA[' + post.title + ']]></title>' +
-            '<link>' + link + '</link>' +
-            '<description><![CDATA[' + post.description + ']]></description>' +
-            '<pubDate>' + new Date(post.date).toUTCString() + '</pubDate>' +
-            '<guid isPermaLink="true">' + link + '</guid>' +
-            '</item>'
-        )
-    }).join('')
+    const urls = [
+        \`<url><loc>\${baseUrl}</loc><lastmod>\${new Date().toISOString()}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>\`,
+        ...posts.map((post: any) => \`<url><loc>\${baseUrl}/\${post.slug}</loc><lastmod>\${new Date(post.date).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>\`),
+    ].join('')
 
-    const feed =
-        '<?xml version="1.0" encoding="UTF-8"?>' +
-        '<rss version="2.0">' +
-        '<channel>' +
-        '<title>' + siteConfig.name + '</title>' +
-        '<link>' + baseUrl + '</link>' +
-        '<description>' + siteConfig.description + '</description>' +
-        items +
-        '</channel>' +
-        '</rss>'
+    const sitemap = \`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\${urls}</urlset>\`
 
-    return new Response(feed, {
-        headers: {
-            'Content-Type': 'application/xml; charset=utf-8',
-        },
-    })
+    return new Response(sitemap, { headers: { 'Content-Type': 'application/xml' } })
 }`
         },
     ]
