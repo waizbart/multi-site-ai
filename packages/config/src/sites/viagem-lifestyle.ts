@@ -25,10 +25,29 @@ export const viagemlifestyleConfig: SiteConfig = {
         titleTemplate: '%s | Viagem e lifestyle',
         defaultDescription: 'Dicas e inspirações de viagens, lifestyle e bem-estar: roteiros exclusivos, luxo acessível, experiências saudáveis e tendências em turismo para quem busca viver melhor.',
         keywords: [
-            // TODO: Adicione palavras-chave relevantes
-            'blog',
-            'conteúdo',
-            'artigos'
-        ]
+            // Português
+            "roteiros de viagem luxo acessível 2025",
+            "turismo de bem-estar destinos 2025",
+            "viagens fitness retiros saudáveis Brasil",
+            "melhores spas com pacote all inclusive",
+            "dicas viagem com foco em saúde mental",
+            "experiências de luxo com custo moderado",
+            "destinos exóticos seguros para família 2025",
+            "trilhas e aventuras com conforto e bem-estar",
+            "como planejar viagem de luxo econômica",
+            "melhor temporada para wellness retreats",
+          
+            // Inglês
+            "luxury travel experiences under $200",
+            "wellness travel retreats 2025 Europe",
+            "fitness travel packages available now",
+            "best spa resorts all inclusive Caribbean",
+            "family friendly exotic destinations 2025",
+            "health focused vacation ideas near me",
+            "affordable luxury travel tips guide",
+            "wellness holidays with yoga and meditation",
+            "active travel adventures for families",
+            "eco-friendly luxury travel trends"
+          ]
     }
 }

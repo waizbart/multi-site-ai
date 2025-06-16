@@ -14,8 +14,13 @@ import { execSync } from 'child_process'
 import OpenAI from 'openai'
 import slugify from 'slugify'
 import dotenv from 'dotenv'
-import * as googleTrends from 'google-trends-api'
 import matter from 'gray-matter'
+
+// O script próprio de descoberta de keywords
+import { KeywordInfo, fetchDailyTrendingTopics, pickHighValueTopics } from '../src/keywordService'
+import { safeSlug, withRetry } from '../src/utils'
+import pLimit from 'p-limit'
+import { z } from 'zod'
 
 // Importa configs dos sites diretamente da fonte TS
 import { siteConfigs } from '../../config/src/sites'
@@ -51,88 +56,110 @@ const TARGET_SITES = cliArgs.length
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
-interface PostContent {
+export interface PostContent {
+    slug?: string // opcional na resposta da IA
     title: string
     description: string
     content: string
     tags: string[]
     image?: string
+    faq?: { question: string; answer: string }[]
+    schema?: Record<string, any>
+}
+
+// Adiciona variação de personas e formatos de artigo
+const PERSONAS = [
+    'Especialista Setorial',
+    'Analista de Mercado',
+    'Engenheiro',
+    'Investidor',
+    'Entusiasta'
+] as const
+
+const TEMPLATES = [
+    'How-To Guide',
+    'Listicle',
+    'Comparativo',
+    'FAQ',
+    'Review',
+    'Case Study',
+    'News Flash'
+] as const
+
+function randomChoice<T>(arr: readonly T[]): T {
+    return arr[Math.floor(Math.random() * arr.length)]
 }
 
 // ───────────────────────────────────────────────
 // HELPERS
 // ───────────────────────────────────────────────
 
-async function getTrendingTopics(
-    keywords: string[],
-    count = 5,
-    geo = 'BR'
-): Promise<string[]> {
-    if (keywords.length === 0) return []
+function buildPrompt(
+    topic: string,
+    existingTitles: string[],
+    template: string,
+    persona: string,
+    highCpcKeywords: string[]
+): string {
+    const previous = existingTitles.length
+        ? `\n\nTítulos já publicados sobre temas relacionados:\n- ${existingTitles.join('\n- ')}\n\n`
+        : ''
 
-    const now = new Date()
-    const from = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) // últimos 7 dias
-
-    const results = await Promise.all(
-        keywords.map(async (k) => {
-            try {
-                const jsonStr = await googleTrends.interestOverTime({
-                    keyword: k,
-                    startTime: from,
-                    geo,
-                })
-                const data = JSON.parse(jsonStr).default.timelineData as any[]
-                const score = data.reduce((acc, d) => acc + (d.value[0] || 0), 0)
-                return { k, score }
-            } catch (_) {
-                return { k, score: 0 }
-            }
-        })
-    )
-
-    return results
-        .sort((a, b) => b.score - a.score)
-        .slice(0, count)
-        .map((r) => r.k)
-}
-
-async function generatePostContent(topic: string, existingTitles: string[]): Promise<PostContent> {
-    console.log(`🤖 Gerando conteúdo para: ${topic}`)
-
-    const previous = existingTitles.length ? `\n\nTítulos já publicados sobre temas relacionados:\n- ${existingTitles.join('\n- ')}\n\n` : ''
-
-    const prompt = `Você é um(a) especialista em ${topic}. Escreva um artigo aprofundado e envolvente sobre este assunto.${previous}Requisitos:
-- Título chamativo e otimizado para SEO (até 60 caracteres)
-- Descrição de 150-160 caracteres
-- Artigo entre 5000 e 10000 palavras
-- Use ## e ### com palavras-chave relevantes
-- Inclua pelo menos uma lista numerada ou tabela
-- Finalize com uma conclusão convidando o leitor a comentar
-- 5-10 tags pertinentes
+    return `Você é ${persona}. Escreva um ${template} otimizado para a consulta "${topic}".${previous}Requisitos:
+- H1 (título) até 60 caracteres com palavra-chave principal
+- Meta descrição 150-160 caracteres
+- 1200–2500 palavras
+- Use ## e ### com variações semânticas
+- Inclua lista ou tabela
+- Gere seção FAQ com 3–5 perguntas
+- Gere 3 links internos (use /posts/<slug>)
+- Utilize pelo menos 3 destas palavras de alto CPC: ${highCpcKeywords.slice(0, 8).join(', ')}
 - Formato Markdown válido
-- Não inclua links externos; use /posts/slug-relacionado onde fizer sentido para links internos
 
-Adicionalmente, o novo artigo NÃO deve ser apenas uma reformulação dos conteúdos anteriores nem ter título ou descrição muito parecidos com os listados. Apresente perspectivas, exemplos ou dados inéditos.
+### Regras de Markdown (obrigatório)
+1. NÃO coloque "{#id}" em headings.
+2. Headings devem ser somente o texto.
 
-### Regras de Markdown (obrigatório seguir)
-1. NÃO coloque "{#alguma-coisa}" depois de headings.
-2. NÃO escreva IDs de âncora manualmente.
-3. Headings devem ser somente o texto, por ex. "## Meu Título".
-
-Responda APENAS em JSON neste formato:
+Responda APENAS em JSON:
 {
   "title": "Título do artigo",
-  "description": "Descrição breve",
-  "content": "Conteúdo completo em markdown",
-  "tags": ["tag1", "tag2", "tag3"]
+  "description": "Meta description",
+  "content": "Markdown do corpo",
+  "tags": ["tag1", "tag2"],
+  "faq": [{"question":"...","answer":"..."}],
+  "schema": {"@context":"https://schema.org"}
 }`
+}
 
-    const completion = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.8,
-        max_tokens: 3000,
-    })
+const POST_SCHEMA = z.object({
+    title: z.string(),
+    description: z.string(),
+    content: z.string(),
+    tags: z.array(z.string()).optional().default([]),
+    faq: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
+    schema: z.record(z.any()).optional(),
+    image: z.string().optional(),
+})
+
+async function generatePostContent(
+    topic: string,
+    existingTitles: string[],
+    template: string,
+    persona: string,
+    highCpcKeywords: string[]
+): Promise<PostContent> {
+    console.log(`🤖 Gerando conteúdo para: ${topic} | template=${template} | persona=${persona}`)
+
+    const prompt = buildPrompt(topic, existingTitles, template, persona, highCpcKeywords)
+
+    const completion = await withRetry(() =>
+        openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.8,
+            max_tokens: 1800,
+        })
+    )
 
     const responseContent = completion.choices[0]?.message?.content ?? ''
 
@@ -141,7 +168,10 @@ Responda APENAS em JSON neste formato:
         throw new Error('Formato JSON não encontrado na resposta da OpenAI')
     }
 
-    const postData = JSON.parse(jsonMatch[0]) as PostContent
+    const rawData = JSON.parse(jsonMatch[0])
+    const validated = POST_SCHEMA.parse(rawData)
+    const postData: PostContent = validated
+
     console.log(`✅ Conteúdo gerado: ${postData.title}`)
     return postData
 }
@@ -174,13 +204,26 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
         frontmatterLines.push(`featuredImage: "${postData.image}"`)
     }
 
-    frontmatterLines.push('---', '', postData.content)
+    frontmatterLines.push('---', '', postData.content.trim())
+
+    // Anexa FAQ se houver
+    if (postData.faq && postData.faq.length) {
+        frontmatterLines.push('\n## Perguntas Frequentes')
+        for (const qa of postData.faq) {
+            frontmatterLines.push(`\n### ${qa.question}\n${qa.answer}`)
+        }
+    }
+
+    // Anexa JSON-LD estruturado se houver
+    if (postData.schema) {
+        frontmatterLines.push('\n```json\n' + JSON.stringify(postData.schema, null, 2) + '\n```')
+    }
 
     return frontmatterLines.join('\n')
 }
 
-async function savePost(postData: PostContent, siteId: string, siteConfig: SiteConfig): Promise<string> {
-    const slug = slugify(postData.title, { lower: true, strict: true })
+async function savePost(postData: PostContent, siteId: string, siteConfig: SiteConfig, existingSlugs: Set<string>): Promise<string> {
+    const slug = safeSlug(postData.title, existingSlugs)
     const filename = `${new Date().toISOString().split('T')[0]}-${slug}.mdx`
 
     const sitePath = path.join(__dirname, '..', 'sites', siteId)
@@ -196,10 +239,12 @@ async function savePost(postData: PostContent, siteId: string, siteConfig: SiteC
     return filePath
 }
 
-async function commitChanges() {
+async function commitChanges(files: string[]) {
     try {
-        execSync('git add .', { cwd: path.join(__dirname, '../../..') })
-        execSync(`git commit -m "chore(content): daily auto-generated posts"`, {
+        execSync(`git add ${files.map((f) => path.relative(path.join(__dirname, '../../..'), f)).join(' ')}`, {
+            cwd: path.join(__dirname, '../../..'),
+        })
+        execSync(`git diff --cached --quiet || git commit -m "chore(content): auto-generated posts"`, {
             cwd: path.join(__dirname, '../../..'),
         })
         console.log('✅ Mudanças commitadas com sucesso')
@@ -287,51 +332,55 @@ async function main() {
         }
 
         console.log(`\n📰 Site: ${siteId}`)
-        let topics: string[] = []
+
+        let keywordInfos: KeywordInfo[] = []
         try {
-            topics = await getTrendingTopics(siteConfig.seo.keywords, POSTS_PER_SITE)
+            // 1º: Trending específicos do tema (relatedQueries+score)
+            keywordInfos = await pickHighValueTopics(siteConfig.seo.keywords, POSTS_PER_SITE)
+            // Fallback: trending geral do país
+            if (!keywordInfos.length) {
+                keywordInfos = await fetchDailyTrendingTopics('BR', POSTS_PER_SITE)
+            }
         } catch (err) {
             console.warn('⚠️  Falha ao obter tópicos em alta, usando keywords aleatórias')
-            topics = [...siteConfig.seo.keywords].sort(() => 0.5 - Math.random()).slice(0, POSTS_PER_SITE)
+            keywordInfos = siteConfig.seo.keywords.slice(0, POSTS_PER_SITE).map((k) => ({ query: k, trendScore: 10, cpcUsd: 1 }))
         }
 
-        // Remove tópicos cuja slug já exista
         const existingSlugs = getExistingSlugs(siteId)
         const existingTitles = getExistingTitles(siteId)
-        topics = topics.filter((t) => !existingSlugs.has(slugify(t, { lower: true, strict: true })))
 
-        if (topics.length === 0) {
-            console.log('ℹ️  Nenhum tópico novo para gerar hoje.')
-            continue
-        }
+        const limit = pLimit(parseInt(process.env.GENERATION_CONCURRENCY || '3'))
+        await Promise.all(
+            keywordInfos.map((ki) =>
+                limit(async () => {
+                    const slugCandidate = slugify(ki.query, { lower: true, strict: true })
+                    if (existingSlugs.has(slugCandidate)) {
+                        console.log(`ℹ️  Já existe post para o tópico "${ki.query}", pulando.`)
+                        return
+                    }
 
-        for (const topic of topics) {
-            try {
-                const postData = await generatePostContent(topic, existingTitles)
-                const slug = slugify(postData.title, { lower: true, strict: true })
-                if (existingSlugs.has(slug)) {
-                    console.log(`⚠️  Conteúdo já existente para slug "${slug}", ignorando.`)
-                    continue
-                }
+                    const template = randomChoice(TEMPLATES)
+                    const persona = randomChoice(PERSONAS)
+                    const highCpcKeywords = keywordInfos.map((k) => k.query)
 
-                const image = await generateImage(postData.title)
-                if (image) postData.image = image
+                    try {
+                        const postData = await generatePostContent(ki.query, existingTitles, template, persona, highCpcKeywords)
+                        const image = await generateImage(postData.title)
+                        if (image) postData.image = image
 
-                const filePath = await savePost(postData, siteId, siteConfig)
-                generatedFiles.push(filePath)
-                existingSlugs.add(slug)
-                existingTitles.push(postData.title)
-
-                // Respeita rate-limit da OpenAI
-                await new Promise((r) => setTimeout(r, 1000))
-            } catch (err) {
-                console.error(`❌ Erro ao gerar post para o tópico "${topic}":`, err)
-            }
-        }
+                        const filePath = await savePost(postData, siteId, siteConfig, existingSlugs)
+                        generatedFiles.push(filePath)
+                        existingTitles.push(postData.title)
+                    } catch (err) {
+                        console.error(`❌ Erro ao gerar post para o tópico "${ki.query}":`, err)
+                    }
+                })
+            )
+        )
     }
 
     if (generatedFiles.length) {
-        await commitChanges()
+        await commitChanges(generatedFiles)
         console.log('\n✅ Concluído! Posts gerados:')
         generatedFiles.forEach((f) => console.log('   -', f))
     } else {
