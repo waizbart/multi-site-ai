@@ -124,14 +124,13 @@ export default postPageConfig.PostPage`;
         {
             dir: ['sitemap.xml'],
             filename: 'route.ts',
-            content: `// @ts-nocheck
-import { MetadataRoute } from 'next'
+            content: `import { MetadataRoute } from 'next'
 import { getPostsBySite } from '@multi-site-ai/content'
 import { getSiteConfig } from '@multi-site-ai/config'
 
 const SITE_ID = '${siteId}'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export function GET(): MetadataRoute.Sitemap {
     const posts = getPostsBySite(SITE_ID)
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\\/$/, '')
@@ -154,13 +153,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
         {
             dir: ['robots.txt'],
             filename: 'route.ts',
-            content: `// @ts-nocheck
-import { MetadataRoute } from 'next'
+            content: `import { MetadataRoute } from 'next'
 import { getSiteConfig } from '@multi-site-ai/config'
 
 const SITE_ID = '${siteId}'
 
-export default function robots(): MetadataRoute.Robots {
+export function GET(): MetadataRoute.Robots {
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\\/$/, '')
     return {

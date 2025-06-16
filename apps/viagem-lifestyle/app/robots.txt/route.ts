@@ -4,7 +4,7 @@ import { getSiteConfig } from '@multi-site-ai/config'
 
 const SITE_ID = 'viagem-lifestyle'
 
-export default function robots(): MetadataRoute.Robots {
+export function GET(): MetadataRoute.Robots {
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\/$/, '')
     return {

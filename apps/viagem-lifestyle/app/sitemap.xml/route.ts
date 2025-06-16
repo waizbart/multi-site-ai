@@ -5,7 +5,7 @@ import { getSiteConfig } from '@multi-site-ai/config'
 
 const SITE_ID = 'viagem-lifestyle'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export function GET(): MetadataRoute.Sitemap {
     const posts = getPostsBySite(SITE_ID)
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\/$/, '')
