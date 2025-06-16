@@ -86,12 +86,12 @@ async function getTrendingTopics(
         .map((r) => r.k)
 }
 
-async function generatePostContent(topic: string): Promise<PostContent> {
+async function generatePostContent(topic: string, existingTitles: string[]): Promise<PostContent> {
     console.log(`🤖 Gerando conteúdo para: ${topic}`)
 
-    const prompt = `Você é um(a) especialista em ${topic}. Escreva um artigo aprofundado e envolvente sobre este assunto.
+    const previous = existingTitles.length ? `\n\nTítulos já publicados sobre temas relacionados:\n- ${existingTitles.join('\n- ')}\n\n` : ''
 
-Requisitos:
+    const prompt = `Você é um(a) especialista em ${topic}. Escreva um artigo aprofundado e envolvente sobre este assunto.${previous}Requisitos:
 - Título chamativo e otimizado para SEO (até 60 caracteres)
 - Descrição de 150-160 caracteres
 - Artigo entre 5000 e 10000 palavras
@@ -101,6 +101,8 @@ Requisitos:
 - 5-10 tags pertinentes
 - Formato Markdown válido
 - Não inclua links externos; use /posts/slug-relacionado onde fizer sentido para links internos
+
+Adicionalmente, o novo artigo NÃO deve ser apenas uma reformulação dos conteúdos anteriores nem ter título ou descrição muito parecidos com os listados. Apresente perspectivas, exemplos ou dados inéditos.
 
 Responda APENAS em JSON neste formato:
 {
@@ -226,6 +228,29 @@ function getExistingSlugs(siteId: string): Set<string> {
     return slugs
 }
 
+function getExistingTitles(siteId: string, limit = 50): string[] {
+    const siteDir = path.join(__dirname, '..', 'sites', siteId)
+    if (!fs.existsSync(siteDir)) return []
+
+    const files = fs.readdirSync(siteDir).filter((f) => f.endsWith('.mdx'))
+        .sort((a, b) => fs.statSync(path.join(siteDir, b)).mtimeMs - fs.statSync(path.join(siteDir, a)).mtimeMs)
+        .slice(0, limit)
+
+    const titles: string[] = []
+    for (const file of files) {
+        try {
+            const raw = fs.readFileSync(path.join(siteDir, file), 'utf-8')
+            const parsed = matter(raw)
+            if (parsed.data && typeof parsed.data.title === 'string') {
+                titles.push(parsed.data.title)
+            }
+        } catch (_) {
+            /* ignore */
+        }
+    }
+    return titles
+}
+
 // ───────────────────────────────────────────────
 // MAIN
 // ───────────────────────────────────────────────
@@ -255,6 +280,7 @@ async function main() {
 
         // Remove tópicos cuja slug já exista
         const existingSlugs = getExistingSlugs(siteId)
+        const existingTitles = getExistingTitles(siteId)
         topics = topics.filter((t) => !existingSlugs.has(slugify(t, { lower: true, strict: true })))
 
         if (topics.length === 0) {
@@ -264,7 +290,7 @@ async function main() {
 
         for (const topic of topics) {
             try {
-                const postData = await generatePostContent(topic)
+                const postData = await generatePostContent(topic, existingTitles)
                 const slug = slugify(postData.title, { lower: true, strict: true })
                 if (existingSlugs.has(slug)) {
                     console.log(`⚠️  Conteúdo já existente para slug "${slug}", ignorando.`)
@@ -277,6 +303,7 @@ async function main() {
                 const filePath = await savePost(postData, siteId, siteConfig)
                 generatedFiles.push(filePath)
                 existingSlugs.add(slug)
+                existingTitles.push(postData.title)
 
                 // Respeita rate-limit da OpenAI
                 await new Promise((r) => setTimeout(r, 1000))
