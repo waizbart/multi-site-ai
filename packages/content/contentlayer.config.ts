@@ -96,8 +96,12 @@ export default makeSource({
     contentDirPath: './sites',
     documentTypes: [Post],
     disableImportAliasWarning: true,
+    onSuccess: async (importData) => {
+        console.log(`✅ Generated ${importData.allDocuments.length} documents`)
+    },
+    onUnknownDocuments: 'skip-warn',
     mdx: {
-        remarkPlugins: [],
+        remarkPlugins: [remarkGfm],
         rehypePlugins: [
             rehypeSlug,
             [

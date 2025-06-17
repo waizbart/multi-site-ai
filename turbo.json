@@ -5,15 +5,26 @@
             "dependsOn": [
                 "^build"
             ],
+            "inputs": [
+                "**/*.ts",
+                "**/*.tsx",
+                "**/*.js",
+                "**/*.jsx",
+                "**/*.mdx"
+            ],
             "outputs": [
                 ".next/**",
                 "!.next/cache/**",
-                "dist/**"
+                "dist/**",
+                ".contentlayer/**"
             ]
         },
         "dev": {
             "cache": false,
-            "persistent": true
+            "persistent": true,
+            "dependsOn": [
+                "^build"
+            ]
         },
         "lint": {
             "dependsOn": [
@@ -21,6 +32,9 @@
             ]
         },
         "clean": {
+            "cache": false
+        },
+        "prebuild": {
             "cache": false
         }
     }
