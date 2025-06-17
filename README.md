@@ -330,6 +330,3 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 - 💬 Issues: Use o GitHub Issues
 - 📖 Docs: Consulte este README
 
----
-
-**Feito com ❤️ e 🤖 IA**
