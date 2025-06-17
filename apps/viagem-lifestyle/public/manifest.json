@@ -1,0 +1,37 @@
+{
+    "name": "Viagem & Lifestyle NeoStream",
+    "short_name": "Viagem",
+    "description": "Guias de viagem, dicas de destinos, estilo de vida, cultura e experiências únicas ao redor do mundo. Inspire-se para sua próxima aventura.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#f59e0b",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "pt-BR",
+    "categories": [
+        "lifestyle",
+        "travel",
+        "entertainment"
+    ],
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "48x48",
+            "type": "image/x-icon",
+            "purpose": "any"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "192x192",
+            "type": "image/x-icon",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "512x512",
+            "type": "image/x-icon",
+            "purpose": "any maskable"
+        }
+    ]
+}
