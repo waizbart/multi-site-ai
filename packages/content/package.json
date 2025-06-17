@@ -9,7 +9,8 @@
         "dev": "contentlayer dev",
         "clean": "rm -rf dist .contentlayer",
         "generate-posts": "ts-node scripts/generate_posts.ts",
-        "create-samples": "ts-node scripts/create_sample_posts.ts"
+        "create-samples": "ts-node scripts/create_sample_posts.ts",
+        "fix-mdx": "node scripts/fix_mdx_syntax.js"
     },
     "dependencies": {
         "contentlayer": "^0.3.4",

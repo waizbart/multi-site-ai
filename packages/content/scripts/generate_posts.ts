@@ -127,6 +127,8 @@ Requisitos:
 2. Headings devem ser somente o texto.
 3. NÃO inclua nenhum tipo de link no conteúdo.
 4. ESCREVA TUDO EM PORTUGUÊS BRASILEIRO.
+5. Evite usar < ou > seguidos de números (ex: use "menos de 1 ms" em vez de "<1 ms").
+6. NÃO use caracteres especiais que possam quebrar o parsing MDX.
 
 Responda APENAS em JSON:
 {
@@ -188,6 +190,23 @@ async function generateImage(prompt: string): Promise<string | undefined> {
     return undefined
 }
 
+/**
+ * Sanitiza o conteúdo MDX para evitar erros de parsing
+ * Remove ou escapa caracteres que podem causar problemas
+ */
+function sanitizeMDXContent(content: string): string {
+    return content
+        // Escapa < seguido de números (que podem ser interpretados como tags HTML)
+        .replace(/(<)(\d)/g, '&lt;$2')
+        // Escapa > seguido de números
+        .replace(/(\d)(>)/g, '$1&gt;')
+        // Remove caracteres de controle invisíveis
+        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+        // Normaliza quebras de linha
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+}
+
 function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteConfig, filename: string): string {
     const todayISO = new Date().toISOString()
     // Extract slug from filename (without .mdx extension) to match the URL path
@@ -212,7 +231,7 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
         frontmatterLines.push(`featuredImage: "${postData.image}"`)
     }
 
-    frontmatterLines.push('---', '', postData.content.trim())
+    frontmatterLines.push('---', '', sanitizeMDXContent(postData.content.trim()))
 
     return frontmatterLines.join('\n')
 }
