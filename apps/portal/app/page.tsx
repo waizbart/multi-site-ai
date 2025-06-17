@@ -20,10 +20,10 @@ export default function PortalHomePage() {
                 <div className="absolute inset-0 bg-flow opacity-50" />
                 <div className="relative text-center py-20 px-4">
                     <div className="flex items-center justify-center gap-4 mb-8">
-                        <h1 style={{ fontFamily: "Meow Script" }} className="text-5xl font-extrabold tracking-tight lg:text-6xl bg-clip-text">
+                        <h1 className="text-5xl font-extrabold tracking-tight lg:text-6xl bg-clip-text">
                             Portal
                         </h1>
-                        <div className="flex items-center rounded-md border text-lg border-primary" style={{ fontFamily: "Lexend Zetta" }}>
+                        <div className="flex items-center rounded-md border text-lg border-primary">
                             <span className="px-2 py-1 bg-primary text-white dark:bg-white dark:text-primary font-bold rounded-l-md">
                                 neo
                             </span>
