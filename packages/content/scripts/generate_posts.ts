@@ -19,7 +19,6 @@ import matter from 'gray-matter'
 // O script próprio de descoberta de keywords
 import { KeywordInfo, fetchDailyTrendingTopics, pickHighValueTopics } from '../src/keywordService'
 import { safeSlug, withRetry } from '../src/utils'
-import pLimit from 'p-limit'
 import { z } from 'zod'
 
 // Importa configs dos sites diretamente da fonte TS
@@ -349,7 +348,10 @@ async function main() {
         const existingSlugs = getExistingSlugs(siteId)
         const existingTitles = getExistingTitles(siteId)
 
+        // Import dinâmico do p-limit para compatibilidade ESM
+        const { default: pLimit } = await import('p-limit')
         const limit = pLimit(parseInt(process.env.GENERATION_CONCURRENCY || '3'))
+
         await Promise.all(
             keywordInfos.map((ki) =>
                 limit(async () => {
