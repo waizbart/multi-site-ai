@@ -77,17 +77,39 @@ function createSite(siteId, siteName, siteDescription, baseSiteId = 'site-templa
         JSON.stringify(packageJson, null, 4)
     );
 
-    // 3. Criar layout.tsx
-    const layoutContent = `import { getSiteConfig } from '@multi-site-ai/config'
+    // 3. Criar layout.tsx - usando padrão atualizado
+    const layoutContent = `import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
 import { createRootLayout, createLayoutMetadata } from '@multi-site-ai/shared-app'
+import { getSiteConfig } from '@multi-site-ai/config'
+import Script from 'next/script'
 import './globals.css'
 
-const SITE_ID = '${siteId}'
-const siteConfig = getSiteConfig(SITE_ID)
+const inter = Inter({ 
+    subsets: ['latin'],
+    display: 'swap',
+    preload: true
+})
 
-export const metadata = createLayoutMetadata(siteConfig)
+const siteConfig = getSiteConfig('${siteId}')
+const RootLayout = createRootLayout(siteConfig)
 
-export default createRootLayout(siteConfig)`;
+export const metadata: Metadata = {
+    ...createLayoutMetadata(siteConfig),
+    ...(siteConfig.adsenseId && {
+        other: {
+            'google-adsense-account': siteConfig.adsenseId,
+        }
+    }),
+}
+
+export default function Layout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    return <RootLayout>{children}</RootLayout>
+}`;
 
     fs.writeFileSync(path.join(siteDir, 'app', 'layout.tsx'), layoutContent);
 
@@ -119,7 +141,100 @@ export default postPageConfig.PostPage`;
 
     fs.writeFileSync(path.join(siteDir, 'app', '[slug]', 'page.tsx'), postPageContent);
 
-    // 5.1 Criar rotas SEO (sitemap, robots, rss)
+    // 5.1 Criar páginas legais simplificadas
+    const legalPages = [
+        { name: 'politica-de-privacidade', title: 'Política de Privacidade' },
+        { name: 'termos-de-uso', title: 'Termos de Uso' },
+        { name: 'politica-de-cookies', title: 'Política de Cookies' },
+        { name: 'sobre', title: 'Sobre Nós' },
+        { name: 'contato', title: 'Contato' }
+    ];
+
+    legalPages.forEach(({ name, title }) => {
+        const pageDir = path.join(siteDir, 'app', name);
+        fs.mkdirSync(pageDir, { recursive: true });
+
+        const isFinance = siteId.includes('financas');
+        const isHealth = siteId.includes('saude');
+
+        const disclaimer = isFinance
+            ? `As informações financeiras fornecidas neste site são apenas para fins educacionais e informativos. 
+Não oferecemos consultoria financeira ou de investimentos. Sempre consulte um profissional financeiro 
+qualificado antes de tomar decisões de investimento.`
+            : isHealth
+                ? `As informações de saúde fornecidas neste site são apenas para fins educacionais e informativos. 
+Não substituem o aconselhamento médico profissional. Sempre consulte um profissional de saúde 
+qualificado antes de tomar decisões sobre sua saúde.`
+                : '';
+
+        const content = name === 'politica-de-privacidade'
+            ? `Informações que coletamos, como utilizamos seus dados, cookies e tecnologias similares, seus direitos (LGPD).`
+            : name === 'termos-de-uso'
+                ? `Termos e condições de uso do site, responsabilidades do usuário e limitações de responsabilidade.`
+                : name === 'politica-de-cookies'
+                    ? `Como utilizamos cookies para melhorar sua experiência de navegação e para fins de análise.`
+                    : name === 'sobre'
+                        ? `Informações sobre nossa missão, equipe e compromisso com a qualidade do conteúdo.`
+                        : `Entre em contato conosco através dos canais disponíveis.`;
+
+        const pageContent = `import { getSiteConfig } from '@multi-site-ai/config'
+import Link from 'next/link'
+
+const siteConfig = getSiteConfig('${siteId}')
+
+export default function ${title.replace(/\s+/g, '')}Page() {
+    return (
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-4">${title}</h1>
+                <p className="text-muted-foreground">
+                    Última atualização: {new Date().toLocaleDateString('pt-BR')}
+                </p>
+            </div>
+
+            <div className="prose prose-gray dark:prose-invert max-w-none space-y-6">
+                ${disclaimer ? `<div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                    <p className="text-sm text-amber-800 dark:text-amber-200 mb-0">
+                        <strong>Aviso Importante:</strong> ${disclaimer}
+                    </p>
+                </div>` : ''}
+                
+                <p className="text-lg">
+                    ${content}
+                </p>
+                
+                <p>
+                    Para mais informações, entre em contato através do email: 
+                    <Link href={\`mailto:\${siteConfig.author.email}\`} className="text-primary hover:underline">
+                        {siteConfig.author.email}
+                    </Link>
+                </p>
+            </div>
+        </div>
+    )
+}`;
+
+        fs.writeFileSync(path.join(pageDir, 'page.tsx'), pageContent);
+    });
+
+    // 5.2 Criar rota ads.txt para AdSense
+    const adsTxtDir = path.join(siteDir, 'app', 'ads.txt');
+    fs.mkdirSync(adsTxtDir, { recursive: true });
+
+    const adsTxtContent = `export function GET() {
+    const adsenseId = process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-6189411019780384'
+    const content = \`google.com, \${adsenseId}, DIRECT, f08c47fec0942fa0\`
+    
+    return new Response(content, {
+        headers: {
+            'Content-Type': 'text/plain',
+        },
+    })
+}`;
+
+    fs.writeFileSync(path.join(adsTxtDir, 'route.ts'), adsTxtContent);
+
+    // 5.3 Criar rotas SEO (sitemap, robots, rss)
     const seoRoutes = [
         {
             dir: ['sitemap.xml'],
@@ -133,20 +248,15 @@ export function GET() {
     const posts = getPostsBySite(SITE_ID)
     const siteConfig = getSiteConfig(SITE_ID)
     const baseUrl = siteConfig.url.replace(/\\/$/, '')
-    return [
-        {
-            url: baseUrl,
-            lastModified: new Date(),
-            changeFrequency: 'daily',
-            priority: 1,
-        },
-        ...posts.map((post: any) => ({
-            url: \`\${baseUrl}/\${post.slug}\`,
-            lastModified: new Date(post.date),
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        })),
-    ]
+    
+    const urls = [
+        \`<url><loc>\${baseUrl}</loc><lastmod>\${new Date().toISOString()}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>\`,
+        ...posts.map((post: any) => \`<url><loc>\${baseUrl}/\${post.slug}</loc><lastmod>\${new Date(post.date).toISOString()}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>\`),
+    ].join('')
+
+    const sitemap = \`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\${urls}</urlset>\`
+
+    return new Response(sitemap, { headers: { 'Content-Type': 'application/xml' } })
 }`
         },
         {

@@ -11,9 +11,11 @@ export const portalConfig: SiteConfig = {
     themeColor: '#3b82f6', // blue-500
     defaultLocale: 'pt-BR',
     author: {
-        name: 'NeoStream',
+        name: 'Equipe Editorial NeoStream',
         email: 'contato@neostream.com.br',
-        url: 'https://neostream.com.br'
+        url: 'https://neostream.com.br/sobre',
+        bio: 'Equipe editorial especializada em criar conteúdo de qualidade em diversas áreas do conhecimento.',
+        credentials: 'Equipe multidisciplinar de jornalistas, editores e especialistas em conteúdo digital.'
     },
     social: {
         twitter: '@neostream',
@@ -38,5 +40,11 @@ export const portalConfig: SiteConfig = {
             'informação confiável',
             'rede de sites'
         ]
+    },
+    legal: {
+        privacyPolicyUrl: '/politica-de-privacidade',
+        termsOfServiceUrl: '/termos-de-uso',
+        cookiePolicyUrl: '/politica-de-cookies',
+        aboutUrl: '/sobre'
     }
 }

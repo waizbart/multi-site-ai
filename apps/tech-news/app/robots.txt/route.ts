@@ -1,15 +1,32 @@
-// @ts-nocheck
-import { getSiteConfig } from '@multi-site-ai/config'
+import { NextResponse } from 'next/server'
 
-const SITE_ID = 'tech-news'
+export async function GET() {
+    const robotsContent = `User-agent: *
+Allow: /
 
-export function GET() {
-    const { url } = getSiteConfig(SITE_ID)
-    const baseUrl = url.replace(/\/$/, '')
-    const content = `User-agent: *\nAllow: /\nSitemap: ${baseUrl}/sitemap.xml`;
-    return new Response(content, {
+# Sitemaps
+Sitemap: https://tech-news.neostream.com.br/sitemap.xml
+
+# Crawl delay for better server performance
+Crawl-delay: 1
+
+# Disallow search and admin pages
+Disallow: /search
+Disallow: /admin
+Disallow: /api
+
+# Allow important pages
+Allow: /politica-de-privacidade
+Allow: /termos-de-uso
+Allow: /sobre
+Allow: /contato
+Allow: /ads.txt
+`
+
+    return new NextResponse(robotsContent, {
         headers: {
             'Content-Type': 'text/plain',
+            'Cache-Control': 'public, max-age=86400',
         },
     })
-} 
+}

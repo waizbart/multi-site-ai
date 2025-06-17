@@ -12,6 +12,8 @@ export interface SiteConfig {
         name: string
         email: string
         url?: string
+        bio?: string
+        credentials?: string
     }
     social?: {
         twitter?: string
@@ -23,5 +25,17 @@ export interface SiteConfig {
         titleTemplate: string
         defaultDescription: string
         keywords: string[]
+    }
+    ymyl?: {
+        isYMYL: boolean
+        disclaimer?: string
+        medicalDisclaimer?: string
+        financialDisclaimer?: string
+    }
+    legal?: {
+        privacyPolicyUrl?: string
+        termsOfServiceUrl?: string
+        cookiePolicyUrl?: string
+        aboutUrl?: string
     }
 } 

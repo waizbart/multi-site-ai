@@ -1,13 +1,32 @@
-import { getSiteConfig } from '@multi-site-ai/config'
+import { NextResponse } from 'next/server'
 
-const SITE_ID = 'portal'
+export async function GET() {
+    const robotsContent = `User-agent: *
+Allow: /
 
-export function GET() {
-    const siteConfig = getSiteConfig(SITE_ID)
-    const baseUrl = siteConfig.url.replace(/\/$/, '')
-    const robots =         `User-agent: *\nAllow: /\nSitemap: ${baseUrl}/sitemap.xml\nHost: ${baseUrl}`
+# Sitemaps
+Sitemap: https://portal.neostream.com.br/sitemap.xml
 
-    return new Response(robots, {
-        headers: { 'Content-Type': 'text/plain' },
+# Crawl delay for better server performance
+Crawl-delay: 1
+
+# Disallow search and admin pages
+Disallow: /search
+Disallow: /admin
+Disallow: /api
+
+# Allow important pages
+Allow: /politica-de-privacidade
+Allow: /termos-de-uso
+Allow: /sobre
+Allow: /contato
+Allow: /ads.txt
+`
+
+    return new NextResponse(robotsContent, {
+        headers: {
+            'Content-Type': 'text/plain',
+            'Cache-Control': 'public, max-age=86400',
+        },
     })
 }

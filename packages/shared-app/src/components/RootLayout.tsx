@@ -5,11 +5,35 @@ import Script from 'next/script'
 import type { SiteConfig } from '@multi-site-ai/config'
 import { ThemeProvider } from './ThemeProvider'
 import NavBar from './NavBar'
+import Link from 'next/link'
 
 interface RootLayoutProps {
     children: React.ReactNode
     siteConfig: SiteConfig
     className?: string
+}
+
+// Componente de Disclaimer YMYL
+function YMYLDisclaimer({ siteConfig }: { siteConfig: SiteConfig }) {
+    if (!siteConfig.ymyl?.isYMYL) return null
+
+    return (
+        <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                    <svg className="h-5 w-5 text-amber-600 dark:text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                </div>
+                <div className="text-sm text-amber-800 dark:text-amber-200">
+                    <p className="font-medium mb-1">Aviso Importante</p>
+                    <p>
+                        {siteConfig.ymyl.financialDisclaimer || siteConfig.ymyl.medicalDisclaimer || siteConfig.ymyl.disclaimer}
+                    </p>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 export function createRootLayout(siteConfig: SiteConfig, className?: string) {
@@ -22,19 +46,24 @@ export function createRootLayout(siteConfig: SiteConfig, className?: string) {
                     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
                     <link rel="manifest" href="/manifest.json" />
 
-                    {/* Google Fonts */}
+                    {/* Google Fonts - Otimizado para Performance */}
                     <link rel="preconnect" href="https://fonts.googleapis.com" />
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                    <link href="https://fonts.googleapis.com/css2?family=Meow+Script&display=swap" rel="stylesheet" />
-                    <link href="https://fonts.googleapis.com/css2?family=Lexend+Zetta:wght@100..900&display=swap" rel="stylesheet" />
+                    <link
+                        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+                        rel="stylesheet"
+                    />
 
-                    {/* AdSense */}
+                    {/* AdSense - Meta tag de verificação será adicionada aqui */}
                     {siteConfig.adsenseId && (
-                        <script
-                            async
-                            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adsenseId}`}
-                            crossOrigin="anonymous"
-                        />
+                        <>
+                            <meta name="google-adsense-account" content={siteConfig.adsenseId} />
+                            <script
+                                async
+                                src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${siteConfig.adsenseId}`}
+                                crossOrigin="anonymous"
+                            />
+                        </>
                     )}
 
                     {/* Analytics */}
@@ -60,13 +89,45 @@ export function createRootLayout(siteConfig: SiteConfig, className?: string) {
                         <div className="flex min-h-screen flex-col">
                             <NavBar title={siteConfig.name} />
 
-                            <main className="flex-1">{children}</main>
+                            <main className="flex-1">
+                                <div className="container mx-auto px-4 py-6">
+                                    <YMYLDisclaimer siteConfig={siteConfig} />
+                                    {children}
+                                </div>
+                            </main>
 
-                            <footer className="w-full border-t py-6 md:py-0">
-                                <div className="w-full flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row px-6">
-                                    <p className="text-center text-sm leading-loose text-muted-foreground">
-                                        © {new Date().getFullYear()} {siteConfig.name}
-                                    </p>
+                            <footer className="w-full border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                                <div className="container mx-auto px-4 py-8">
+                                    {/* Links Legais - Obrigatórios para AdSense */}
+                                    <div className="flex flex-wrap justify-center gap-6 mb-6 text-sm">
+                                        <Link href="/sobre" className="text-muted-foreground hover:text-foreground transition-colors">
+                                            Sobre Nós
+                                        </Link>
+                                        <Link href="/politica-de-privacidade" className="text-muted-foreground hover:text-foreground transition-colors">
+                                            Política de Privacidade
+                                        </Link>
+                                        <Link href="/termos-de-uso" className="text-muted-foreground hover:text-foreground transition-colors">
+                                            Termos de Uso
+                                        </Link>
+                                        <Link href="/politica-de-cookies" className="text-muted-foreground hover:text-foreground transition-colors">
+                                            Política de Cookies
+                                        </Link>
+                                        <Link href="/contato" className="text-muted-foreground hover:text-foreground transition-colors">
+                                            Contato
+                                        </Link>
+                                    </div>
+
+                                    {/* Informações do Site */}
+                                    <div className="text-center space-y-2">
+                                        <p className="text-sm text-muted-foreground">
+                                            © {new Date().getFullYear()} {siteConfig.name}. Todos os direitos reservados.
+                                        </p>
+                                        {siteConfig.author?.credentials && (
+                                            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+                                                {siteConfig.author.credentials}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </footer>
                         </div>
@@ -96,21 +157,12 @@ export function createLayoutMetadata(siteConfig: SiteConfig): Metadata {
             title: siteConfig.seo.defaultTitle,
             description: siteConfig.seo.defaultDescription,
             siteName: siteConfig.name,
-            images: [
-                {
-                    url: '/og-image.png',
-                    width: 1200,
-                    height: 630,
-                    alt: siteConfig.name,
-                },
-            ],
         },
         twitter: {
             card: 'summary_large_image',
             title: siteConfig.seo.defaultTitle,
             description: siteConfig.seo.defaultDescription,
-            images: ['/og-image.png'],
-            creator: siteConfig.social?.twitter,
+            creator: '@' + siteConfig.author.name.replace(/\s+/g, '').toLowerCase(),
         },
         robots: {
             index: true,
@@ -124,10 +176,7 @@ export function createLayoutMetadata(siteConfig: SiteConfig): Metadata {
             },
         },
         verification: {
-            google: 'google-site-verification-code',
-        },
-        alternates: {
-            canonical: siteConfig.url,
+            google: process.env.GOOGLE_VERIFICATION_ID,
         },
     }
 } 

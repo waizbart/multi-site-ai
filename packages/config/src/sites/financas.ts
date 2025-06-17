@@ -2,23 +2,25 @@ import type { SiteConfig } from '../site-config'
 
 export const financasConfig: SiteConfig = {
     name: 'Finanças',
-    description: 'Dicas práticas de finanças pessoais, investimentos inteligentes e orçamento familiar. Aprenda a economizar dinheiro, investir melhor e alcançar independência financeira.',
+    description: 'Dicas práticas de finanças pessoais, investimentos e orçamento familiar',
     domain: 'financas.neostream.com.br',
     url: 'https://financas.neostream.com.br',
     logo: '/logo.png',
     favicon: '/favicon.ico',
     adsenseId: 'ca-pub-6189411019780384',
-    themeColor: '#3b82f6', // blue-500
+    themeColor: '#10b981',
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Autor do Finanças',
-        email: 'contato@financas.neostream.com.br',
-        url: 'https://financas.neostream.com.br'
+        name: 'Equipe Finanças NeoStream',
+        email: 'financas@neostream.com.br',
+        url: 'https://financas.neostream.com.br/sobre',
+        bio: 'Especialistas em finanças pessoais e investimentos, com foco em educação financeira acessível e prática.',
+        credentials: 'Equipe formada por profissionais certificados em finanças pessoais e consultores financeiros.'
     },
     social: {
-        twitter: '@financas',
+        twitter: '@FinancasNeoStream',
         github: 'username/financas',
-        linkedin: 'company/financas'
+        linkedin: 'financas-neostream'
     },
     seo: {
         defaultTitle: 'Finanças',
@@ -74,5 +76,15 @@ export const financasConfig: SiteConfig = {
             'controle financeiro com Power BI',
             'dicas para renegociar dívidas com banco'
         ]
+    },
+    ymyl: {
+        isYMYL: true,
+        financialDisclaimer: 'As informações financeiras fornecidas neste site são apenas para fins educacionais e informativos. Não oferecemos consultoria financeira ou de investimentos. Sempre consulte um profissional financeiro qualificado antes de tomar decisões de investimento. Os investimentos envolvem riscos e podem resultar em perdas.'
+    },
+    legal: {
+        privacyPolicyUrl: '/politica-de-privacidade',
+        termsOfServiceUrl: '/termos-de-uso',
+        cookiePolicyUrl: '/politica-de-cookies',
+        aboutUrl: '/sobre'
     }
 }

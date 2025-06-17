@@ -11,9 +11,11 @@ export const automoveisConfig: SiteConfig = {
     themeColor: '#3b82f6', // blue-500
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Autor do Automóveis',
-        email: 'contato@automoveis.neostream.com.br', // TODO: Substitua pelo seu email
-        url: 'https://automoveis.neostream.com.br'
+        name: 'Equipe Automóveis NeoStream',
+        email: 'automoveis@neostream.com.br',
+        url: 'https://automoveis.neostream.com.br/sobre',
+        bio: 'Especialistas em automóveis, mecânicos certificados e jornalistas automotivos dedicados a fornecer informações precisas sobre veículos.',
+        credentials: 'Equipe formada por mecânicos certificados, jornalistas automotivos e especialistas do setor.'
     },
     social: {
         twitter: '@automoveis', // TODO: Substitua pelo seu Twitter
@@ -45,6 +47,12 @@ export const automoveisConfig: SiteConfig = {
             "best sedan repair shop cidade",
             "car insurance quotes auto insurance quote",
             "auto repair shops omaha ne"
-          ]
+        ]
+    },
+    legal: {
+        privacyPolicyUrl: '/politica-de-privacidade',
+        termsOfServiceUrl: '/termos-de-uso',
+        cookiePolicyUrl: '/politica-de-cookies',
+        aboutUrl: '/sobre'
     }
 }

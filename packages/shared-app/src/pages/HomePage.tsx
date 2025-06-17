@@ -25,12 +25,12 @@ export function createHomePage(siteId: string) {
                 <section className="relative overflow-hidden rounded-xl mb-12">
                     <div className="absolute inset-0 bg-flow opacity-50" />
                     <div className="relative text-center py-20 px-4">
-                        <h1 style={{ fontFamily: "Meow Script" }} className="text-5xl font-extrabold tracking-tight lg:text-6xl mb-6 bg-clip-text">
+                        <h1 className="text-5xl font-extrabold tracking-tight lg:text-6xl mb-6 bg-clip-text">
                             {siteConfig.name}
                         </h1>
                         <div className="flex items-center justify-center gap-2 mb-8">
                             <span className="text-lg text-muted-foreground">by</span>
-                            <Link href="https://neostream.com.br" target="_blank" className="flex items-center rounded-md border text-xs border-primary" style={{ fontFamily: "Lexend Zetta" }}>
+                            <Link href="https://neostream.com.br" target="_blank" className="flex items-center rounded-md border text-xs border-primary">
                                 <span className="px-2 py-1 bg-primary text-white dark:bg-white dark:text-primary font-bold rounded-l-md">
                                     neo
                                 </span>

@@ -11,9 +11,11 @@ export const viagemlifestyleConfig: SiteConfig = {
     themeColor: '#3b82f6', // blue-500
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Autor do Viagem e lifestyle',
-        email: 'contato@viagem-lifestyle.neostream.com.br', // TODO: Substitua pelo seu email
-        url: 'https://viagem-lifestyle.neostream.com.br'
+        name: 'Equipe Viagem & Lifestyle NeoStream',
+        email: 'viagem@neostream.com.br',
+        url: 'https://viagem-lifestyle.neostream.com.br/sobre',
+        bio: 'Especialistas em turismo, viagens e lifestyle, com experiência prática em destinos ao redor do mundo.',
+        credentials: 'Equipe formada por jornalistas de turismo, guias de viagem certificados e especialistas em lifestyle.'
     },
     social: {
         twitter: '@viagem-lifestyle', // TODO: Substitua pelo seu Twitter
@@ -36,7 +38,7 @@ export const viagemlifestyleConfig: SiteConfig = {
             "trilhas e aventuras com conforto e bem-estar",
             "como planejar viagem de luxo econômica",
             "melhor temporada para wellness retreats",
-          
+
             // Inglês
             "luxury travel experiences under $200",
             "wellness travel retreats 2025 Europe",
@@ -48,6 +50,12 @@ export const viagemlifestyleConfig: SiteConfig = {
             "wellness holidays with yoga and meditation",
             "active travel adventures for families",
             "eco-friendly luxury travel trends"
-          ]
+        ]
+    },
+    legal: {
+        privacyPolicyUrl: '/politica-de-privacidade',
+        termsOfServiceUrl: '/termos-de-uso',
+        cookiePolicyUrl: '/politica-de-cookies',
+        aboutUrl: '/sobre'
     }
 }

@@ -1,13 +1,32 @@
-import { getSiteConfig } from '@multi-site-ai/config'
-import { createRootLayout, createLayoutMetadata } from '@multi-site-ai/shared-app'
+import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { createRootLayout, createLayoutMetadata } from '@multi-site-ai/shared-app'
+import { getSiteConfig } from '@multi-site-ai/config'
+import Script from 'next/script'
 import './globals.css'
 
-const SITE_ID = 'tech-news'
-const siteConfig = getSiteConfig(SITE_ID)
+const inter = Inter({ 
+    subsets: ['latin'],
+    display: 'swap',
+    preload: true
+})
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' })
+const siteConfig = getSiteConfig('tech-news')
+const RootLayout = createRootLayout(siteConfig)
 
-export const metadata = createLayoutMetadata(siteConfig)
+export const metadata: Metadata = {
+    ...createLayoutMetadata(siteConfig),
+    ...(siteConfig.adsenseId && {
+        other: {
+            'google-adsense-account': siteConfig.adsenseId,
+        }
+    }),
+}
 
-export default createRootLayout(siteConfig, inter.className)
+export default function Layout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    return <RootLayout>{children}</RootLayout>
+}

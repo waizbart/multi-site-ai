@@ -5,15 +5,13 @@ import { automoveisConfig } from './automoveis'
 import { saudealimentacaoConfig } from './saude-alimentacao'
 import { viagemlifestyleConfig } from './viagem-lifestyle'
 import { portalConfig } from './portal'
-
 export const siteConfigs: Record<string, SiteConfig> = {
     'tech-news': technewsConfig,
     'financas': financasConfig,
     'automoveis': automoveisConfig,
     'saude-alimentacao': saudealimentacaoConfig,
     'viagem-lifestyle': viagemlifestyleConfig,
-    'portal': portalConfig,
-    // Adicione novas configurações de sites aqui
+    'portal': portalConfig,// Adicione novas configurações de sites aqui
     // 'site-foo': siteFooConfig,
 }
 
