@@ -371,37 +371,30 @@ async function main() {
         const existingTitles = getExistingTitles(siteId)
         const existingPosts = getExistingPosts(siteId)
 
-        // Import dinâmico do p-limit para compatibilidade ESM
-        const { default: pLimit } = await import('p-limit')
-        const limit = pLimit(parseInt(process.env.GENERATION_CONCURRENCY || '3'))
+        // Processamento sequencial para evitar problemas de concorrência
+        for (const ki of keywordInfos) {
+            const slugCandidate = slugify(ki.query, { lower: true, strict: true })
+            if (existingSlugs.has(slugCandidate)) {
+                console.log(`ℹ️  Já existe post para o tópico "${ki.query}", pulando.`)
+                continue
+            }
 
-        await Promise.all(
-            keywordInfos.map((ki) =>
-                limit(async () => {
-                    const slugCandidate = slugify(ki.query, { lower: true, strict: true })
-                    if (existingSlugs.has(slugCandidate)) {
-                        console.log(`ℹ️  Já existe post para o tópico "${ki.query}", pulando.`)
-                        return
-                    }
+            const template = randomChoice(TEMPLATES)
+            const persona = randomChoice(PERSONAS)
+            const highCpcKeywords = keywordInfos.map((k) => k.query)
 
-                    const template = randomChoice(TEMPLATES)
-                    const persona = randomChoice(PERSONAS)
-                    const highCpcKeywords = keywordInfos.map((k) => k.query)
+            try {
+                const postData = await generatePostContent(ki.query, existingTitles, existingPosts, template, persona, highCpcKeywords)
+                const image = await generateImage(postData.title)
+                if (image) postData.image = image
 
-                    try {
-                        const postData = await generatePostContent(ki.query, existingTitles, existingPosts, template, persona, highCpcKeywords)
-                        const image = await generateImage(postData.title)
-                        if (image) postData.image = image
-
-                        const filePath = await savePost(postData, siteId, siteConfig, existingPosts)
-                        generatedFiles.push(filePath)
-                        existingTitles.push(postData.title)
-                    } catch (err) {
-                        console.error(`❌ Erro ao gerar post para o tópico "${ki.query}":`, err)
-                    }
-                })
-            )
-        )
+                const filePath = await savePost(postData, siteId, siteConfig, existingPosts)
+                generatedFiles.push(filePath)
+                existingTitles.push(postData.title)
+            } catch (err) {
+                console.error(`❌ Erro ao gerar post para o tópico "${ki.query}":`, err)
+            }
+        }
     }
 
     if (generatedFiles.length) {
