@@ -50,6 +50,21 @@ export const Post = defineDocumentType(() => ({
             description: 'Se o post é destaque',
             default: false,
         },
+        slug: {
+            type: 'string',
+            description: 'Slug do post',
+            required: false,
+        },
+        canonical: {
+            type: 'string',
+            description: 'URL canônica do post',
+            required: false,
+        },
+        featuredImage: {
+            type: 'string',
+            description: 'URL da imagem de destaque',
+            required: false,
+        },
     },
     computedFields: {
         slug: {

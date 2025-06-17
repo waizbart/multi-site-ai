@@ -49,9 +49,9 @@ const TARGET_SITES = cliArgs.length
         ? process.env.SITES.split(',').map((s) => s.trim()).filter(Boolean)
         : Object.keys(siteConfigs)
 
-            // Remover duplicatas e garantir que não inclua o template
+            // Remover duplicatas e garantir que não inclua o template nem o portal
             .filter((s, idx, arr) => arr.indexOf(s) === idx) // unique
-            .filter((s) => s !== 'site-template')
+            .filter((s) => s !== 'site-template' && s !== 'portal')
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY })
 
@@ -63,7 +63,6 @@ export interface PostContent {
     tags: string[]
     image?: string
     faq?: { question: string; answer: string }[]
-    schema?: Record<string, any>
 }
 
 // Adiciona variação de personas e formatos de artigo
@@ -96,6 +95,7 @@ function randomChoice<T>(arr: readonly T[]): T {
 function buildPrompt(
     topic: string,
     existingTitles: string[],
+    existingPosts: { title: string; slug: string }[],
     template: string,
     persona: string,
     highCpcKeywords: string[]
@@ -104,29 +104,41 @@ function buildPrompt(
         ? `\n\nTítulos já publicados sobre temas relacionados:\n- ${existingTitles.join('\n- ')}\n\n`
         : ''
 
-    return `Você é ${persona}. Escreva um ${template} otimizado para a consulta "${topic}".${previous}Requisitos:
-- H1 (título) até 60 caracteres com palavra-chave principal
-- Meta descrição 150-160 caracteres
-- 1200–2500 palavras
+    const availableLinks = existingPosts.length
+        ? `\n\nLinks internos disponíveis para usar no conteúdo:\n${existingPosts.map(post => `- [${post.title}](/${post.slug})`).join('\n')}\n\n`
+        : '\n\nNão há posts existentes para links internos.\n\n'
+
+    return `INSTRUÇÃO FUNDAMENTAL: Você DEVE escrever EXCLUSIVAMENTE em português brasileiro. Nada em inglês.
+
+Você é ${persona}. Escreva um ${template} otimizado para a consulta "${topic}".${previous}${availableLinks}
+
+IMPORTANTE: TODO O CONTEÚDO DEVE SER EM PORTUGUÊS BRASILEIRO (título, descrição, conteúdo, tags, FAQ).
+
+Requisitos:
+- H1 (título) até 60 caracteres com palavra-chave principal EM PORTUGUÊS
+- Meta descrição 150-160 caracteres EM PORTUGUÊS
+- 1200–2500 palavras EM PORTUGUÊS
 - Use ## e ### com variações semânticas
 - Inclua lista ou tabela
-- Gere seção FAQ com 3–5 perguntas
-- Gere 3 links internos (use /posts/<slug>)
+- Gere seção FAQ com 3–5 perguntas EM PORTUGUÊS
+- ${existingPosts.length ? 'Inclua 2-3 links internos usando EXATAMENTE os links mostrados acima (copie o formato completo)' : 'NÃO inclua links internos (não há posts disponíveis)'}
 - Utilize pelo menos 3 destas palavras de alto CPC: ${highCpcKeywords.slice(0, 8).join(', ')}
+- Tags devem ser EM PORTUGUÊS BRASILEIRO
 - Formato Markdown válido
 
 ### Regras de Markdown (obrigatório)
 1. NÃO coloque "{#id}" em headings.
 2. Headings devem ser somente o texto.
+3. Para links internos, copie EXATAMENTE os links listados acima - NÃO modifique URLs ou títulos.
+4. ESCREVA TUDO EM PORTUGUÊS BRASILEIRO.
 
 Responda APENAS em JSON:
 {
-  "title": "Título do artigo",
-  "description": "Meta description",
-  "content": "Markdown do corpo",
-  "tags": ["tag1", "tag2"],
-  "faq": [{"question":"...","answer":"..."}],
-  "schema": {"@context":"https://schema.org"}
+  "title": "Título do artigo EM PORTUGUÊS",
+  "description": "Meta description EM PORTUGUÊS",
+  "content": "Markdown do corpo EM PORTUGUÊS",
+  "tags": ["tag1 em português", "tag2 em português"],
+  "faq": [{"question":"Pergunta em português","answer":"Resposta em português"}]
 }`
 }
 
@@ -136,20 +148,20 @@ const POST_SCHEMA = z.object({
     content: z.string(),
     tags: z.array(z.string()).optional().default([]),
     faq: z.array(z.object({ question: z.string(), answer: z.string() })).optional(),
-    schema: z.record(z.any()).optional(),
     image: z.string().optional(),
 })
 
 async function generatePostContent(
     topic: string,
     existingTitles: string[],
+    existingPosts: { title: string; slug: string }[],
     template: string,
     persona: string,
     highCpcKeywords: string[]
 ): Promise<PostContent> {
     console.log(`🤖 Gerando conteúdo para: ${topic} | template=${template} | persona=${persona}`)
 
-    const prompt = buildPrompt(topic, existingTitles, template, persona, highCpcKeywords)
+    const prompt = buildPrompt(topic, existingTitles, existingPosts, template, persona, highCpcKeywords)
 
     const completion = await withRetry(() =>
         openai.chat.completions.create({
@@ -188,8 +200,8 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
 
     const frontmatterLines = [
         '---',
-        `title: "${postData.title.replace(/"/g, '\"')}"`,
-        `description: "${postData.description.replace(/"/g, '\"')}"`,
+        `title: "${postData.title.replace(/"/g, '\\"')}"`,
+        `description: "${postData.description.replace(/"/g, '\\"')}"`,
         `date: "${todayISO}"`,
         `slug: "${slug}"`,
         `canonical: "${siteConfig.url.replace(/\/$/, '')}/posts/${slug}"`,
@@ -213,16 +225,11 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
         }
     }
 
-    // Anexa JSON-LD estruturado se houver
-    if (postData.schema) {
-        frontmatterLines.push('\n```json\n' + JSON.stringify(postData.schema, null, 2) + '\n```')
-    }
-
     return frontmatterLines.join('\n')
 }
 
-async function savePost(postData: PostContent, siteId: string, siteConfig: SiteConfig, existingSlugs: Set<string>): Promise<string> {
-    const slug = safeSlug(postData.title, existingSlugs)
+async function savePost(postData: PostContent, siteId: string, siteConfig: SiteConfig, existingPosts: { title: string; slug: string }[]): Promise<string> {
+    const slug = safeSlug(postData.title, existingPosts.map((p) => p.slug))
     const filename = `${new Date().toISOString().split('T')[0]}-${slug}.mdx`
 
     const sitePath = path.join(__dirname, '..', 'sites', siteId)
@@ -312,6 +319,32 @@ function getExistingTitles(siteId: string, limit = 50): string[] {
     return titles
 }
 
+function getExistingPosts(siteId: string, limit = 50): { title: string; slug: string }[] {
+    const siteDir = path.join(__dirname, '..', 'sites', siteId)
+    if (!fs.existsSync(siteDir)) return []
+
+    const files = fs.readdirSync(siteDir).filter((f) => f.endsWith('.mdx'))
+        .sort((a, b) => fs.statSync(path.join(siteDir, b)).mtimeMs - fs.statSync(path.join(siteDir, a)).mtimeMs)
+        .slice(0, limit)
+
+    const posts: { title: string; slug: string }[] = []
+    for (const file of files) {
+        try {
+            const raw = fs.readFileSync(path.join(siteDir, file), 'utf-8')
+            const parsed = matter(raw)
+            if (parsed.data && typeof parsed.data.title === 'string' && typeof parsed.data.slug === 'string') {
+                posts.push({
+                    title: parsed.data.title,
+                    slug: parsed.data.slug
+                })
+            }
+        } catch (_) {
+            /* ignore */
+        }
+    }
+    return posts
+}
+
 // ───────────────────────────────────────────────
 // MAIN
 // ───────────────────────────────────────────────
@@ -347,6 +380,7 @@ async function main() {
 
         const existingSlugs = getExistingSlugs(siteId)
         const existingTitles = getExistingTitles(siteId)
+        const existingPosts = getExistingPosts(siteId)
 
         // Import dinâmico do p-limit para compatibilidade ESM
         const { default: pLimit } = await import('p-limit')
@@ -366,11 +400,11 @@ async function main() {
                     const highCpcKeywords = keywordInfos.map((k) => k.query)
 
                     try {
-                        const postData = await generatePostContent(ki.query, existingTitles, template, persona, highCpcKeywords)
+                        const postData = await generatePostContent(ki.query, existingTitles, existingPosts, template, persona, highCpcKeywords)
                         const image = await generateImage(postData.title)
                         if (image) postData.image = image
 
-                        const filePath = await savePost(postData, siteId, siteConfig, existingSlugs)
+                        const filePath = await savePost(postData, siteId, siteConfig, existingPosts)
                         generatedFiles.push(filePath)
                         existingTitles.push(postData.title)
                     } catch (err) {

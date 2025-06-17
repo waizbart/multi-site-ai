@@ -1,17 +1,16 @@
 import slugify from 'slugify'
 
 /**
- * Garante que o slug gerado seja único dentro de um Set.
+ * Garante que o slug gerado seja único dentro de uma lista.
  * Se já existir, adiciona sufixo -1, -2, ...
  */
-export function safeSlug(title: string, existing: Set<string>): string {
+export function safeSlug(title: string, existing: string[]): string {
   const base = slugify(title, { lower: true, strict: true })
   let slug = base
   let i = 1
-  while (existing.has(slug)) {
+  while (existing.includes(slug)) {
     slug = `${base}-${i++}`
   }
-  existing.add(slug)
   return slug
 }
 
