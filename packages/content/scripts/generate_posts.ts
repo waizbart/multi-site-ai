@@ -104,13 +104,9 @@ function buildPrompt(
         ? `\n\nTítulos já publicados sobre temas relacionados:\n- ${existingTitles.join('\n- ')}\n\n`
         : ''
 
-    const availableLinks = existingPosts.length
-        ? `\n\nLinks internos disponíveis para usar no conteúdo:\n${existingPosts.map(post => `- [${post.title}](/${post.slug})`).join('\n')}\n\n`
-        : '\n\nNão há posts existentes para links internos.\n\n'
-
     return `INSTRUÇÃO FUNDAMENTAL: Você DEVE escrever EXCLUSIVAMENTE em português brasileiro. Nada em inglês.
 
-Você é ${persona}. Escreva um ${template} otimizado para a consulta "${topic}".${previous}${availableLinks}
+Você é ${persona}. Escreva um ${template} otimizado para a consulta "${topic}".${previous}
 
 IMPORTANTE: TODO O CONTEÚDO DEVE SER EM PORTUGUÊS BRASILEIRO (título, descrição, conteúdo, tags, FAQ).
 
@@ -121,7 +117,7 @@ Requisitos:
 - Use ## e ### com variações semânticas
 - Inclua lista ou tabela
 - Gere seção FAQ com 3–5 perguntas EM PORTUGUÊS
-- ${existingPosts.length ? 'Inclua 2-3 links internos usando EXATAMENTE os links mostrados acima (copie o formato completo)' : 'NÃO inclua links internos (não há posts disponíveis)'}
+- NÃO inclua links internos ou externos no conteúdo
 - Utilize pelo menos 3 destas palavras de alto CPC: ${highCpcKeywords.slice(0, 8).join(', ')}
 - Tags devem ser EM PORTUGUÊS BRASILEIRO
 - Formato Markdown válido
@@ -129,7 +125,7 @@ Requisitos:
 ### Regras de Markdown (obrigatório)
 1. NÃO coloque "{#id}" em headings.
 2. Headings devem ser somente o texto.
-3. Para links internos, copie EXATAMENTE os links listados acima - NÃO modifique URLs ou títulos.
+3. NÃO inclua nenhum tipo de link no conteúdo.
 4. ESCREVA TUDO EM PORTUGUÊS BRASILEIRO.
 
 Responda APENAS em JSON:
@@ -192,9 +188,10 @@ async function generateImage(prompt: string): Promise<string | undefined> {
     return undefined
 }
 
-function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteConfig): string {
+function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteConfig, filename: string): string {
     const todayISO = new Date().toISOString()
-    const slug = slugify(postData.title, { lower: true, strict: true })
+    // Extract slug from filename (without .mdx extension) to match the URL path
+    const slug = filename.replace('.mdx', '')
 
     const safeTags = Array.isArray(postData.tags) ? postData.tags.filter((t) => typeof t === 'string') : []
 
@@ -204,7 +201,7 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
         `description: "${postData.description.replace(/"/g, '\\"')}"`,
         `date: "${todayISO}"`,
         `slug: "${slug}"`,
-        `canonical: "${siteConfig.url.replace(/\/$/, '')}/posts/${slug}"`,
+        `canonical: "${siteConfig.url.replace(/\/$/, '')}/${slug}"`,
         `tags: [${safeTags.map((tag) => `"${tag}"`).join(', ')}]`,
         `site: "${siteId}"`,
         'draft: false',
@@ -216,14 +213,6 @@ function createMDXFile(postData: PostContent, siteId: string, siteConfig: SiteCo
     }
 
     frontmatterLines.push('---', '', postData.content.trim())
-
-    // Anexa FAQ se houver
-    if (postData.faq && postData.faq.length) {
-        frontmatterLines.push('\n## Perguntas Frequentes')
-        for (const qa of postData.faq) {
-            frontmatterLines.push(`\n### ${qa.question}\n${qa.answer}`)
-        }
-    }
 
     return frontmatterLines.join('\n')
 }
@@ -238,7 +227,7 @@ async function savePost(postData: PostContent, siteId: string, siteConfig: SiteC
     }
 
     const filePath = path.join(sitePath, filename)
-    const mdxContent = createMDXFile(postData, siteId, siteConfig)
+    const mdxContent = createMDXFile(postData, siteId, siteConfig, filename)
 
     fs.writeFileSync(filePath, mdxContent)
     console.log(`📝 Post salvo: ${filePath}`)
