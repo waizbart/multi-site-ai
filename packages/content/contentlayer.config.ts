@@ -50,6 +50,16 @@ export const Post = defineDocumentType(() => ({
             description: 'Se o post é destaque',
             default: false,
         },
+        author: {
+            type: 'string',
+            description: 'Autor do post',
+            required: false,
+        },
+        readTime: {
+            type: 'string',
+            description: 'Tempo de leitura',
+            required: false,
+        },
         slug: {
             type: 'string',
             description: 'Slug do post',
@@ -96,7 +106,8 @@ export default makeSource({
     contentDirPath: './sites',
     documentTypes: [Post],
     disableImportAliasWarning: true,
-    onSuccess: async (importData) => {
+    onSuccess: async (importData: any) => {
+        // @ts-ignore - importData typing differs at runtime
         if (importData && Array.isArray(importData.allDocuments)) {
             console.log(`✅ Generated ${importData.allDocuments.length} documents`)
         } else {

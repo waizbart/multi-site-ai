@@ -9,8 +9,9 @@ const matter = require('gray-matter')
  */
 function sanitizeMDXContent(content) {
     return content
-        // Escapa < seguido de números (que podem ser interpretados como tags HTML)
-        .replace(/(<)(\d)/g, '&lt;$2')
+        // Escapa '<<' ou '<' não seguido de letra ou barra
+        .replace(/<<(?=\d)/g, '&lt;&lt;')
+        .replace(/<(?!(\/|[a-zA-Z!]))/g, '&lt;')
         // Escapa > seguido de números
         .replace(/(\d)(>)/g, '$1&gt;')
         // Remove caracteres de controle invisíveis
