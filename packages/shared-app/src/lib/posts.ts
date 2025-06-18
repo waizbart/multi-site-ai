@@ -73,7 +73,11 @@ export function getAllPosts(siteId: string): Post[] {
                         description: data.description || 'Descrição não encontrada',
                         date: data.date ? new Date(data.date).toISOString() : new Date().toISOString(),
                         tags: Array.isArray(data.tags) ? data.tags : [],
-                        featured: Boolean(data.featured),
+                        featured: typeof data.featured === 'boolean'
+                            ? data.featured
+                            : String(data.featured || '')
+                                .trim()
+                                .toLowerCase() === 'true',
                         site: data.site || siteId,
                         readingTime,
                         content
