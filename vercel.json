@@ -1,0 +1,13 @@
+{
+    "functions": {
+        "**/*.func.js": {
+            "includeFiles": "packages/content/sites/**/*"
+        },
+        "**/*.func.mjs": {
+            "includeFiles": "packages/content/sites/**/*"
+        },
+        "**/*.func": {
+            "includeFiles": "packages/content/sites/**/*"
+        }
+    }
+}
