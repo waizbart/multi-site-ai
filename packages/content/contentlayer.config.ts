@@ -97,7 +97,11 @@ export default makeSource({
     documentTypes: [Post],
     disableImportAliasWarning: true,
     onSuccess: async (importData) => {
-        console.log(`✅ Generated ${importData.allDocuments.length} documents`)
+        if (importData && Array.isArray(importData.allDocuments)) {
+            console.log(`✅ Generated ${importData.allDocuments.length} documents`)
+        } else {
+            console.log('⚠️  Contentlayer build completed, but no documents were reported.')
+        }
     },
     onUnknownDocuments: 'skip-warn',
     mdx: {
