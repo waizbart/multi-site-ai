@@ -9,6 +9,7 @@ import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getAllPosts, getPostBySlug } from '../lib/posts'
+import { LazyComments } from '../components/LazyComments'
 
 interface PostPageProps {
     params: {
@@ -185,6 +186,66 @@ export function createPostPage(siteId: string) {
                         </div>
                     </section>
 
+                    {/* Lazy Comments Section */}
+                    <LazyComments postSlug={post.slug} />
+
+                    {/* Comment Form */}
+                    <div className="bg-muted/30 rounded-lg p-6 border mt-8">
+                        <h4 className="font-semibold mb-4">Deixe seu comentário</h4>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="name" className="block text-sm font-medium mb-1">
+                                        Nome *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        className="w-full px-3 py-2 border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="Seu nome"
+                                        disabled
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="email" className="block text-sm font-medium mb-1">
+                                        Email *
+                                    </label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        className="w-full px-3 py-2 border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        placeholder="seu@email.com"
+                                        disabled
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label htmlFor="message" className="block text-sm font-medium mb-1">
+                                    Comentário *
+                                </label>
+                                <textarea
+                                    id="message"
+                                    rows={4}
+                                    className="w-full px-3 py-2 border border-input rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                                    placeholder="Escreva seu comentário aqui..."
+                                    disabled
+                                ></textarea>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <p className="text-sm text-muted-foreground">
+                                    Seu email não será publicado. Campos obrigatórios são marcados com *
+                                </p>
+                                <button
+                                    type="button"
+                                    className="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium opacity-50 cursor-not-allowed"
+                                    disabled
+                                >
+                                    Publicar Comentário
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Footer */}
                     <footer className="mt-8 pt-8 border-t">
                         <div className="flex flex-wrap gap-2">
@@ -207,4 +268,13 @@ export function createPostPage(siteId: string) {
         generateMetadata,
         revalidate: 60 // ISR: revalidar a cada minuto
     }
+}
+
+function formatDate(dateString: string): string {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('pt-BR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    })
 } 

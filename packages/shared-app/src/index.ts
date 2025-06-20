@@ -1,9 +1,5 @@
 // Components
 export { default as NavBar } from './components/NavBar'
-export { ThemeProvider } from './components/ThemeProvider'
-export { createRootLayout, createLayoutMetadata } from './components/RootLayout'
-
-// Legal Pages
 export {
     PrivacyPolicyPage,
     TermsOfServicePage,
@@ -11,13 +7,15 @@ export {
     AboutPage,
     ContactPage
 } from './components/LegalPages'
+export { OptimizedImage } from './components/OptimizedImage'
+export { LazyComments } from './components/LazyComments'
 
 // Pages
 export { createHomePage } from './pages/HomePage'
 export { createPostPage } from './pages/PostPage'
 
 // Lib
-export * from './lib/posts'
+export { getAllPosts, getPostBySlug } from './lib/posts'
 
 // Types
 export type { Post } from './lib/posts'
