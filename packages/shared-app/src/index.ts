@@ -9,6 +9,7 @@ export {
 } from './components/LegalPages'
 export { OptimizedImage } from './components/OptimizedImage'
 export { LazyComments } from './components/LazyComments'
+export { createRootLayout, createLayoutMetadata } from './components/RootLayout'
 
 // Pages
 export { createHomePage } from './pages/HomePage'
