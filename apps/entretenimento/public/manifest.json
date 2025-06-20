@@ -1,0 +1,16 @@
+{
+    "name": "Entretenimento NeoStream",
+    "short_name": "Entretenimento",
+    "description": "Filmes, séries, livros, música e cultura pop - seu portal de entretenimento completo",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#a855f7",
+    "background_color": "#ffffff",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "32x32",
+            "type": "image/x-icon"
+        }
+    ]
+}

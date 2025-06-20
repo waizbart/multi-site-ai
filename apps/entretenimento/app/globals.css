@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 284 85% 55%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96%;
+        --secondary-foreground: 222.2 84% 4.9%;
+        --muted: 210 40% 96%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --accent: 210 40% 96%;
+        --accent-foreground: 222.2 84% 4.9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 284 85% 55%;
+        --radius: 0.5rem;
+    }
+
+    .dark {
+        --background: 222.2 84% 4.9%;
+        --foreground: 210 40% 98%;
+        --card: 222.2 84% 4.9%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222.2 84% 4.9%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 290 95% 65%;
+        --primary-foreground: 222.2 84% 4.9%;
+        --secondary: 217.2 32.6% 17.5%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 217.2 32.6% 17.5%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217.2 32.6% 17.5%;
+        --input: 217.2 32.6% 17.5%;
+        --ring: 224.3 76.3% 94.1%;
+    }
+
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+/* Syntax highlighting styles */
+pre[data-theme="github-dark"] {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto;
+}
+
+.line--highlighted {
+    @apply bg-gray-800 px-4 -mx-4;
+}
+
+.word--highlighted {
+    @apply bg-blue-600 text-white px-1 rounded;
+}
+
+/* Code block styles */
+prose pre {
+    @apply bg-muted text-muted-foreground p-4 rounded-lg overflow-x-auto mb-4 shadow-lg;
+}
+
+prose pre code {
+    @apply bg-transparent text-muted-foreground p-0 text-sm font-mono leading-relaxed;
+}
+
+/* Article content styles */
+.prose {
+    @apply max-w-none text-foreground;
+}
+
+.prose h1 {
+    @apply text-3xl font-bold mt-8 mb-4 text-foreground;
+}
+
+.prose h2 {
+    @apply text-2xl font-semibold mt-6 mb-3 text-foreground;
+}
+
+.prose h3 {
+    @apply text-xl font-medium mt-4 mb-2 text-foreground;
+}
+
+.prose p {
+    @apply mb-4 leading-7 text-foreground;
+}
+
+.prose ul,
+.prose ol {
+    @apply mb-4 ml-6;
+}
+
+.prose li {
+    @apply mb-2 text-foreground;
+}
+
+.prose blockquote {
+    @apply border-l-4 border-primary pl-4 italic my-4;
+}
+
+.prose code {
+    @apply bg-muted px-1 py-0.5 rounded text-sm text-muted-foreground;
+}
+
+.prose a {
+    @apply text-primary hover:underline;
+}
+
+.subheading-anchor {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.prose h2:hover .subheading-anchor,
+.prose h3:hover .subheading-anchor {
+    opacity: 1;
+}
+
+.prose ul li,
+.prose ol li {
+    @apply text-foreground;
+}
+
+.prose strong {
+    @apply text-foreground;
+}
+
+@layer utilities {
+    @keyframes gradient {
+
+        0%,
+        100% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+    }
+
+    .bg-flow {
+        background: linear-gradient(270deg, hsl(var(--primary)), #ec4899, #a855f7);
+        background-size: 600% 600%;
+        animation: gradient 6s ease infinite;
+    }
+
+    .bg-gradient-entertainment {
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    }
+
+    .text-gradient-entertainment {
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+}
