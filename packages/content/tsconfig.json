@@ -19,21 +19,15 @@
         "jsx": "preserve",
         "incremental": true,
         "declaration": true,
-        "outDir": "./dist",
-        "typeRoots": [
-            "./@types",
-            "./node_modules/@types"
-        ]
+        "outDir": "./dist"
     },
     "include": [
-        "src/**/*",
-        "scripts/**/*",
-        "@types/**/*",
-        "**/*.d.ts",
-        ".contentlayer/generated/**/*"
+        "src/**/*"
     ],
     "exclude": [
         "node_modules",
-        "dist"
+        "dist",
+        "scripts",
+        ".contentlayer"
     ]
 }

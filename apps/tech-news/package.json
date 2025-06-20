@@ -7,8 +7,7 @@
         "dev": "next dev",
         "lint": "next lint",
         "start": "next start",
-        "clean": "rm -rf .next",
-        "prebuild": "npm run build --workspace=@multi-site-ai/content"
+        "clean": "rm -rf .next"
     },
     "dependencies": {
         "@multi-site-ai/shared-app": "file:../../packages/shared-app",

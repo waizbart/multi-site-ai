@@ -97,7 +97,7 @@ export function createPostPage(siteId: string) {
             },
             keywords: post.tags.join(', '),
             articleSection: 'Technology',
-            wordCount: post.content.split(' ').length || 500,
+            wordCount: post.body?.raw?.split(' ').length || 500,
             timeRequired: `PT${post.readingTime}M`,
         }
 
@@ -156,7 +156,7 @@ export function createPostPage(siteId: string) {
 
                     {/* Content */}
                     <div className="prose prose-lg max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.body?.raw || 'Content not available'}</ReactMarkdown>
                     </div>
 
                     {/* Footer */}

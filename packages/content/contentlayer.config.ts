@@ -2,7 +2,6 @@ import { defineDocumentType, makeSource } from 'contentlayer/source-files'
 import remarkGfm from 'remark-gfm'
 import rehypeSlug from 'rehype-slug'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypePrettyCode from 'rehype-pretty-code'
 
 export const Post = defineDocumentType(() => ({
     name: 'Post',
@@ -55,11 +54,6 @@ export const Post = defineDocumentType(() => ({
             description: 'Autor do post',
             required: false,
         },
-        readTime: {
-            type: 'string',
-            description: 'Tempo de leitura',
-            required: false,
-        },
         slug: {
             type: 'string',
             description: 'Slug do post',
@@ -70,9 +64,9 @@ export const Post = defineDocumentType(() => ({
             description: 'URL canônica do post',
             required: false,
         },
-        featuredImage: {
+        readTime: {
             type: 'string',
-            description: 'URL da imagem de destaque',
+            description: 'Tempo de leitura do post',
             required: false,
         },
     },
@@ -106,15 +100,6 @@ export default makeSource({
     contentDirPath: './sites',
     documentTypes: [Post],
     disableImportAliasWarning: true,
-    onSuccess: async (importData: any) => {
-        // @ts-ignore - importData typing differs at runtime
-        if (importData && Array.isArray(importData.allDocuments)) {
-            console.log(`✅ Generated ${importData.allDocuments.length} documents`)
-        } else {
-            console.log('⚠️  Contentlayer build completed, but no documents were reported.')
-        }
-    },
-    onUnknownDocuments: 'skip-warn',
     mdx: {
         remarkPlugins: [remarkGfm],
         rehypePlugins: [
