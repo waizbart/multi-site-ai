@@ -14,6 +14,7 @@ export interface SiteConfig {
         url?: string
         bio?: string
         credentials?: string
+        image?: string
     }
     social?: {
         twitter?: string

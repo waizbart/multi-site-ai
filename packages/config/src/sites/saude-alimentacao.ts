@@ -9,11 +9,12 @@ export const saudealimentacaoConfig: SiteConfig = {
     themeColor: '#f59e0b',
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Equipe Saúde & Alimentação NeoStream',
-        email: 'saude@neostream.com.br',
+        name: 'Dr. Isaac Owusu',
+        email: 'isaac@neostream.com.br',
         url: 'https://saude-alimentacao.neostream.com.br/sobre',
-        bio: 'Nutricionistas e especialistas em saúde dedicados a compartilhar informações baseadas em evidências científicas.',
-        credentials: 'Equipe formada por nutricionistas registrados (CRN) e profissionais de saúde qualificados.'
+        bio: 'Com formação em medicina tropical e saúde pública, Dr. Isaac escreve para tornar a ciência médica compreensível. Focado em bem-estar, nutrição e desmistificação de temas de saúde, é conhecido por sua linguagem clara e humana.',
+        credentials: 'Médico e Divulgador Científico | Acra, Gana',
+        image: '/autor.png'
     },
     social: {
         twitter: '@SaudeNeoStream',

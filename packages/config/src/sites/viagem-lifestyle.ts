@@ -11,11 +11,12 @@ export const viagemlifestyleConfig: SiteConfig = {
     themeColor: '#3b82f6', // blue-500
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Equipe Viagem & Lifestyle NeoStream',
-        email: 'viagem@neostream.com.br',
+        name: 'Camila Duarte',
+        email: 'camila@neostream.com.br',
         url: 'https://viagem-lifestyle.neostream.com.br/sobre',
-        bio: 'Especialistas em turismo, viagens e lifestyle, com experiência prática em destinos ao redor do mundo.',
-        credentials: 'Equipe formada por jornalistas de turismo, guias de viagem certificados e especialistas em lifestyle.'
+        bio: 'Camila trocou uma carreira corporativa por uma mochila e nunca mais parou. Latina, LGBTQIA+, e apaixonada por culturas locais, compartilha roteiros, experiências autênticas e dicas práticas para viajantes curiosos.',
+        credentials: 'Jornalista e Nômade Digital | Lisboa, Portugal',
+        image: '/autor.png'
     },
     social: {
         twitter: '@viagem-lifestyle', // TODO: Substitua pelo seu Twitter

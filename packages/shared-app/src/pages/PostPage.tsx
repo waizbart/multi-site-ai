@@ -159,8 +159,34 @@ export function createPostPage(siteId: string) {
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.body?.raw || 'Content not available'}</ReactMarkdown>
                     </div>
 
+                    {/* Author Section */}
+                    <section className="mt-12 p-6 bg-muted/30 rounded-lg border">
+                        <div className="flex items-start gap-4">
+                            <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary/20">
+                                <img
+                                    src={siteConfig.author.image || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face`}
+                                    alt={`Foto de ${siteConfig.author.name}`}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-semibold mb-2">
+                                    Sobre {siteConfig.author.name}
+                                </h3>
+                                <p className="text-muted-foreground mb-3">
+                                    {siteConfig.author.bio}
+                                </p>
+                                {siteConfig.author.credentials && (
+                                    <p className="text-sm text-muted-foreground italic">
+                                        {siteConfig.author.credentials}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </section>
+
                     {/* Footer */}
-                    <footer className="mt-12 pt-8 border-t">
+                    <footer className="mt-8 pt-8 border-t">
                         <div className="flex flex-wrap gap-2">
                             <span className="text-sm text-muted-foreground">Tags:</span>
                             {post.tags.map((tag: string) => (

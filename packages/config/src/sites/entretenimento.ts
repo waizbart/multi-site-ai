@@ -11,11 +11,12 @@ export const entretenimentoConfig: SiteConfig = {
     themeColor: '#a855f7',
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Equipe Entretenimento NeoStream',
-        email: 'entretenimento@neostream.com.br',
+        name: 'Zoë Carter',
+        email: 'zoe@neostream.com.br',
         url: 'https://entretenimento.neostream.com.br/sobre',
-        bio: 'Críticos especializados em entretenimento, com análises de filmes, séries, livros, música e cultura pop.',
-        credentials: 'Equipe formada por críticos de cinema, literatura, música e especialistas em cultura pop.'
+        bio: 'Zoë é uma premiada roteirista e crítica de cinema com passagens pela Variety e IndieWire. Negra e feminista, sua escrita aborda o impacto social da cultura pop, diversidade e tendências do audiovisual.',
+        credentials: 'Crítica Cultural e Roteirista | Los Angeles, EUA',
+        image: '/autor.png'
     },
     social: {
         twitter: '@EntNeoStream',

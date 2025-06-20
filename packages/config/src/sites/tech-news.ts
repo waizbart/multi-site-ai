@@ -11,11 +11,12 @@ export const technewsConfig: SiteConfig = {
     themeColor: '#8b5cf6',
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Equipe Tech News NeoStream',
-        email: 'tech@neostream.com.br',
+        name: 'Aisha Nakamura',
+        email: 'aisha@neostream.com.br',
         url: 'https://tech-news.neostream.com.br/sobre',
-        bio: 'Jornalistas especializados em tecnologia e inovação, com foco em análises aprofundadas e tendências do mercado tech.',
-        credentials: 'Equipe formada por jornalistas especializados em tecnologia e analistas do setor tech.'
+        bio: 'Especialista em inteligência artificial e robótica, com mais de 10 anos de experiência no Vale do Silício e no Japão. Apaixonada por tecnologia acessível e ética digital, escreve sobre as inovações que estão moldando o futuro.',
+        credentials: 'Engenheira de Software e Futurista | Tóquio, Japão',
+        image: '/autor.png'
     },
     social: {
         twitter: '@TechNewsNeoStream',

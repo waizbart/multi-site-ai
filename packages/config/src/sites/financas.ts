@@ -11,11 +11,12 @@ export const financasConfig: SiteConfig = {
     themeColor: '#10b981',
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Equipe Finanças NeoStream',
-        email: 'financas@neostream.com.br',
+        name: 'Omar Haddad',
+        email: 'omar@neostream.com.br',
         url: 'https://financas.neostream.com.br/sobre',
-        bio: 'Especialistas em finanças pessoais e investimentos, com foco em educação financeira acessível e prática.',
-        credentials: 'Equipe formada por profissionais certificados em finanças pessoais e consultores financeiros.'
+        bio: 'Com carreira no setor bancário e startups financeiras, Omar escreve sobre economia, criptomoedas e educação financeira. Sua missão é ajudar leitores a entender e melhorar sua relação com o dinheiro.',
+        credentials: 'Economista e Especialista em Fintech | Dubai, Emirados Árabes Unidos',
+        image: '/autor.png'
     },
     social: {
         twitter: '@FinancasNeoStream',

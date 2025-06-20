@@ -11,11 +11,12 @@ export const automoveisConfig: SiteConfig = {
     themeColor: '#3b82f6', // blue-500
     defaultLocale: 'pt-BR',
     author: {
-        name: 'Equipe Automóveis NeoStream',
-        email: 'automoveis@neostream.com.br',
+        name: 'Rafael Montenegro',
+        email: 'rafael@neostream.com.br',
         url: 'https://automoveis.neostream.com.br/sobre',
-        bio: 'Especialistas em automóveis, mecânicos certificados e jornalistas automotivos dedicados a fornecer informações precisas sobre veículos.',
-        credentials: 'Equipe formada por mecânicos certificados, jornalistas automotivos e especialistas do setor.'
+        bio: 'Rafael cresceu desmontando motores e hoje percorre o mundo testando os últimos lançamentos das montadoras. Apaixonado por carros elétricos e mobilidade urbana, traz análises técnicas com linguagem acessível.',
+        credentials: 'Engenheiro Automotivo e Testador Profissional | São Paulo, Brasil',
+        image: '/autor.png'
     },
     social: {
         twitter: '@automoveis', // TODO: Substitua pelo seu Twitter
