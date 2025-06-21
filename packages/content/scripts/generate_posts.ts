@@ -18,7 +18,7 @@ import matter from 'gray-matter'
 import { ChatCompletionMessageParam } from "openai/resources";
 
 // O script próprio de descoberta de keywords
-import { KeywordInfo, fetchDailyTrendingTopics, pickHighValueTopics } from '../src/keywordService'
+import { KeywordInfo, fetchDailyTrendingTopics, pickHighValueTopics, fetchHybridTrendingTopics } from '../src/keywordService'
 import { safeSlug, withRetry } from '../src/utils'
 import { z } from 'zod'
 
@@ -101,11 +101,11 @@ export function buildPrompt(
     template: string,
     persona: string,
     highCpcKeywords: string[]
-  ): ChatCompletionMessageParam[] {
+): ChatCompletionMessageParam[] {
     const titlesBlock = existingTitles.length
-      ? `Já publicamos sobre temas próximos. NÃO repita estes títulos:\n${joinBullets(existingTitles)}`
-      : "Nenhum artigo semelhante foi publicado.";
-  
+        ? `Já publicamos sobre temas próximos. NÃO repita estes títulos:\n${joinBullets(existingTitles)}`
+        : "Nenhum artigo semelhante foi publicado.";
+
     const schema = `
   interface PostData {
     title: string;            // ≤ 60 chars, inclui palavra-chave principal
@@ -116,22 +116,22 @@ export function buildPrompt(
     content: string;          // Corpo em Markdown
     faq?: { question: string; answer: string }[]; // 3-5 pares
   }`;
-  
+
     return [
-      {
-        role: "system",
-        content: `
+        {
+            role: "system",
+            content: `
   Você é um gerador de conteúdo editorial em português do Brasil.\
    Produza artigos com alta chance de ranquear no Google respeitando SEO moderno.\
    Responda **apenas** com JSON válido conforme o esquema dado.`
-      },
-      {
-        role: "assistant",
-        content: `Exemplo de resposta JSON mínima:\n{\n "title":"Título exemplo",\n "description":"Descrição...",\n "slug":"titulo-exemplo",\n "readingTimeMinutes":7,\n "tags":["tag1","tag2"],\n "content":"# Título\\n...",\n "faq":[{"question":"?","answer":"!"}]\n}`
-      },
-      {
-        role: "user",
-        content: `
+        },
+        {
+            role: "assistant",
+            content: `Exemplo de resposta JSON mínima:\n{\n "title":"Título exemplo",\n "description":"Descrição...",\n "slug":"titulo-exemplo",\n "readingTimeMinutes":7,\n "tags":["tag1","tag2"],\n "content":"# Título\\n...",\n "faq":[{"question":"?","answer":"!"}]\n}`
+        },
+        {
+            role: "user",
+            content: `
   TEMÁTICA: “${topic}”
   PERSONA-NARRADOR(A): ${persona}
   FORMATO: ${template}
@@ -141,7 +141,7 @@ export function buildPrompt(
   Requisitos de qualidade:
   1. Artigo entre 4000 e 5000 palavras.
   2. Use H2/H3 sem âncoras {#...}. Nada de links externos/internos.
-  3. Empregue **pelo menos 5** (naturalmente!) destas keywords de CPC alto: ${highCpcKeywords.slice(0,10).join(", ")}.
+  3. Empregue **pelo menos 5** (naturalmente!) destas keywords de CPC alto: ${highCpcKeywords.slice(0, 10).join(", ")}.
   4. Liste ou tabule dados relevantes.
   5. Crie FAQ (3-5) com perguntas distintas.
   6. Pontuação de legibilidade (Flesch-Kincaid) alvo ≥ 60.
@@ -159,9 +159,9 @@ export function buildPrompt(
   
   **IMPORTANTE**: Retorne **somente** o JSON final sem comentários.
         `.trim()
-      }
+        }
     ];
-  }
+}
 
 const POST_SCHEMA = z.object({
     title: z.string(),
@@ -397,10 +397,12 @@ async function main() {
 
         let keywordInfos: KeywordInfo[] = []
         try {
-            // 1º: Trending específicos do tema (relatedQueries+score)
-            keywordInfos = await pickHighValueTopics(siteConfig.seo.keywords, POSTS_PER_SITE)
-            // Fallback: trending geral do país
+            // Nova abordagem híbrida: 60% tendências gerais + 40% específicas do site
+            console.log('🔍 Buscando tópicos híbridos (tendências + nicho)...')
+            keywordInfos = await fetchHybridTrendingTopics(siteConfig.seo.keywords, POSTS_PER_SITE)
+
             if (!keywordInfos.length) {
+                console.log('📈 Fallback: usando apenas tendências gerais')
                 keywordInfos = await fetchDailyTrendingTopics('BR', POSTS_PER_SITE)
             }
         } catch (err) {
