@@ -33,8 +33,6 @@ export async function fetchTrendingQueries(
             const data = JSON.parse(jsonStr)
             const rising: any[] | undefined = data?.default?.rising ?? []
 
-            console.log(rising)
-
             for (const item of rising ?? []) {
                 all.push({
                     query: item.query as string,
