@@ -15,6 +15,7 @@ import OpenAI from 'openai'
 import slugify from 'slugify'
 import dotenv from 'dotenv'
 import matter from 'gray-matter'
+import { ChatCompletionMessageParam } from "openai/resources";
 
 // O script próprio de descoberta de keywords
 import { KeywordInfo, fetchDailyTrendingTopics, pickHighValueTopics } from '../src/keywordService'
@@ -92,53 +93,75 @@ function randomChoice<T>(arr: readonly T[]): T {
 // HELPERS
 // ───────────────────────────────────────────────
 
-function buildPrompt(
+const joinBullets = (arr: string[]) => arr.map(t => `- ${t}`).join("\n");
+
+export function buildPrompt(
     topic: string,
     existingTitles: string[],
-    existingPosts: { title: string; slug: string }[],
     template: string,
     persona: string,
     highCpcKeywords: string[]
-): string {
-    const previous = existingTitles.length
-        ? `\n\nTítulos já publicados sobre temas relacionados:\n- ${existingTitles.join('\n- ')}\n\n`
-        : ''
-
-    return `INSTRUÇÃO FUNDAMENTAL: Você DEVE escrever EXCLUSIVAMENTE em português brasileiro. Nada em inglês.
-
-Você é ${persona}. Escreva um ${template} otimizado para a consulta "${topic}".${previous}
-
-IMPORTANTE: TODO O CONTEÚDO DEVE SER EM PORTUGUÊS BRASILEIRO (título, descrição, conteúdo, tags, FAQ).
-
-Requisitos:
-- H1 (título) até 60 caracteres com palavra-chave principal EM PORTUGUÊS
-- Meta descrição 150-160 caracteres EM PORTUGUÊS
-- 1200–2500 palavras EM PORTUGUÊS
-- Use ## e ### com variações semânticas
-- Inclua lista ou tabela
-- Gere seção FAQ com 3–5 perguntas EM PORTUGUÊS
-- NÃO inclua links internos ou externos no conteúdo
-- Utilize pelo menos 3 destas palavras de alto CPC: ${highCpcKeywords.slice(0, 8).join(', ')}
-- Tags devem ser EM PORTUGUÊS BRASILEIRO
-- Formato Markdown válido
-
-### Regras de Markdown (obrigatório)
-1. NÃO coloque "{#id}" em headings.
-2. Headings devem ser somente o texto.
-3. NÃO inclua nenhum tipo de link no conteúdo.
-4. ESCREVA TUDO EM PORTUGUÊS BRASILEIRO.
-5. Evite usar < ou > seguidos de números (ex: use "menos de 1 ms" em vez de "<1 ms").
-6. NÃO use caracteres especiais que possam quebrar o parsing MDX.
-
-Responda APENAS em JSON:
-{
-  "title": "Título do artigo EM PORTUGUÊS",
-  "description": "Meta description EM PORTUGUÊS",
-  "content": "Markdown do corpo EM PORTUGUÊS",
-  "tags": ["tag1 em português", "tag2 em português"],
-  "faq": [{"question":"Pergunta em português","answer":"Resposta em português"}]
-}`
-}
+  ): ChatCompletionMessageParam[] {
+    const titlesBlock = existingTitles.length
+      ? `Já publicamos sobre temas próximos. NÃO repita estes títulos:\n${joinBullets(existingTitles)}`
+      : "Nenhum artigo semelhante foi publicado.";
+  
+    const schema = `
+  interface PostData {
+    title: string;            // ≤ 60 chars, inclui palavra-chave principal
+    description: string;      // 150-160 chars
+    slug: string;             // kebab-case
+    readingTimeMinutes: number;
+    tags: string[];           // 2-6 tags, pt-BR
+    content: string;          // Corpo em Markdown
+    faq?: { question: string; answer: string }[]; // 3-5 pares
+  }`;
+  
+    return [
+      {
+        role: "system",
+        content: `
+  Você é um gerador de conteúdo editorial em português do Brasil.\
+   Produza artigos com alta chance de ranquear no Google respeitando SEO moderno.\
+   Responda **apenas** com JSON válido conforme o esquema dado.`
+      },
+      {
+        role: "assistant",
+        content: `Exemplo de resposta JSON mínima:\n{\n "title":"Título exemplo",\n "description":"Descrição...",\n "slug":"titulo-exemplo",\n "readingTimeMinutes":7,\n "tags":["tag1","tag2"],\n "content":"# Título\\n...",\n "faq":[{"question":"?","answer":"!"}]\n}`
+      },
+      {
+        role: "user",
+        content: `
+  TEMÁTICA: “${topic}”
+  PERSONA-NARRADOR(A): ${persona}
+  FORMATO: ${template}
+  
+  ${titlesBlock}
+  
+  Requisitos de qualidade:
+  1. Artigo entre 4000 e 5000 palavras.
+  2. Use H2/H3 sem âncoras {#...}. Nada de links externos/internos.
+  3. Empregue **pelo menos 5** (naturalmente!) destas keywords de CPC alto: ${highCpcKeywords.slice(0,10).join(", ")}.
+  4. Liste ou tabule dados relevantes.
+  5. Crie FAQ (3-5) com perguntas distintas.
+  6. Pontuação de legibilidade (Flesch-Kincaid) alvo ≥ 60.
+  7. Evite "<" ou ">" antes de números; use “menos de”.
+  8. Markdown deve compilar como MDX (sem caracteres de controle).
+  9. O artigo deve ser escrito de forma profissional e com um tom educacional.
+  10. O artigo deve ter uma boa qualidade de escrita e gramática.
+  11. O conteúdo deve ser bem detalhado e com informações relevantes.
+  
+  Etapas que você deve executar internamente:
+  A) Crie um _outline_ (H2/H3) coerente.
+  B) Redija o artigo completo seguindo o outline.
+  
+  ${schema}
+  
+  **IMPORTANTE**: Retorne **somente** o JSON final sem comentários.
+        `.trim()
+      }
+    ];
+  }
 
 const POST_SCHEMA = z.object({
     title: z.string(),
@@ -152,21 +175,20 @@ const POST_SCHEMA = z.object({
 async function generatePostContent(
     topic: string,
     existingTitles: string[],
-    existingPosts: { title: string; slug: string }[],
     template: string,
     persona: string,
     highCpcKeywords: string[]
 ): Promise<PostContent> {
     console.log(`🤖 Gerando conteúdo para: ${topic} | template=${template} | persona=${persona}`)
 
-    const prompt = buildPrompt(topic, existingTitles, existingPosts, template, persona, highCpcKeywords)
+    const prompt = buildPrompt(topic, existingTitles, template, persona, highCpcKeywords)
 
     const completion = await withRetry(() =>
         openai.chat.completions.create({
             model: 'gpt-4o',
-            messages: [{ role: 'user', content: prompt }],
-            temperature: 0.8,
-            max_tokens: 1800,
+            messages: prompt,
+            temperature: 0.7,
+            max_tokens: 5000,
         })
     )
 
@@ -186,7 +208,7 @@ async function generatePostContent(
 }
 
 async function generateImage(prompt: string): Promise<string | undefined> {
-    // TODO: Implementar geração de imagem com DALL-E 3 caso deseje
+    // TODO: Implementar geração de imagem com DALL-E 3
     return undefined
 }
 
@@ -403,7 +425,7 @@ async function main() {
             const highCpcKeywords = keywordInfos.map((k) => k.query)
 
             try {
-                const postData = await generatePostContent(ki.query, existingTitles, existingPosts, template, persona, highCpcKeywords)
+                const postData = await generatePostContent(ki.query, existingTitles, template, persona, highCpcKeywords)
                 const image = await generateImage(postData.title)
                 if (image) postData.image = image
 
