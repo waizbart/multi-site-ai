@@ -58,8 +58,8 @@ jobs:
       - name: Commit new posts
         if: steps.check_changes.outputs.changes == 'true'
         run: |
-          git config user.name "IA Content Bot"
-          git config user.email "bot@multi-site-ai.com"
+          git config user.name "Guilherme Waizbart"
+          git config user.email "guilhermewaizbart@gmail.com"
           git add .
           git commit -m "chore(content): add daily posts $(date -u +'%Y-%m-%d')"
           git push
