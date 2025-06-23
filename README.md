@@ -324,9 +324,3 @@ pnpm turbo run build --filter="packages/*"
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-## 🙋‍♂️ Suporte
-
-- 📧 Email: <seu-email@dominio.com>
-- 💬 Issues: Use o GitHub Issues
-- 📖 Docs: Consulte este README
-
