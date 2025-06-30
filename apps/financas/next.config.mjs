@@ -88,7 +88,11 @@ const nextConfig = {
     // Redirects para SEO
     async redirects() {
         return [
-            // Adicionar redirects conforme necessário
+            {
+                source: '/posts/:slug*',
+                destination: '/:slug*',
+                permanent: true,
+            },
         ]
     }
 }

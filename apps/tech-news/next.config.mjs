@@ -4,7 +4,7 @@ const nextConfig = {
     compress: true,
     poweredByHeader: false,
     generateEtags: true,
-    
+
     // Otimizações de imagem
     images: {
         formats: ['image/webp', 'image/avif'],
@@ -16,7 +16,7 @@ const nextConfig = {
         contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
         domains: ['images.unsplash.com', 'via.placeholder.com'],
     },
-    
+
     // Headers de segurança e performance
     async headers() {
         return [
@@ -61,12 +61,12 @@ const nextConfig = {
             }
         ]
     },
-    
+
     // Experimental features para performance
     experimental: {
         optimizePackageImports: ['@multi-site-ai/shared-app', '@multi-site-ai/ui'],
     },
-    
+
     // Webpack optimizations
     webpack: (config, { dev, isServer }) => {
         if (!dev && !isServer) {
@@ -81,14 +81,18 @@ const nextConfig = {
         }
         return config
     },
-    
+
     // Output configuration
     output: 'standalone',
-    
+
     // Redirects para SEO
     async redirects() {
         return [
-            // Adicionar redirects conforme necessário
+            {
+                source: '/posts/:slug*',
+                destination: '/:slug*',
+                permanent: true,
+            },
         ]
     }
 }
